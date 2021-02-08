@@ -1,0 +1,56 @@
+""" ${ProjectName} Extension module """
+
+from twisted.internet import task
+
+from scrapy import signals
+
+# ############################################################### #
+# ############################################################### #
+
+
+class ${ProjectName}Extension():
+
+    """ ${ProjectName} Extension class """
+
+    # ####################################################### #
+    # ####################################################### #
+
+    name = '${projectname}.extension'
+
+    crawler = None
+
+    task = None
+
+    # ####################################################### #
+
+    def __init__(self, crawler):
+        self.crawler = crawler
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        extension = cls(crawler)
+        crawler.signals.connect(extension.open, signal=signals.spider_opened)
+        crawler.signals.connect(extension.close, signal=signals.spider_closed)
+        return extension
+
+    # ####################################################### #
+
+    def open(self, spider):
+        self.task = task.LoopingCall(self.something, spider)
+        self.task.start(10.0, now=True)
+
+    def close(self, spider, reason):
+        if self.task and self.task.running:
+            self.task.stop()
+
+    # ####################################################### #
+    # ####################################################### #
+
+    def something(self, spider):
+        pass
+
+    # ####################################################### #
+    # ####################################################### #
+
+# ############################################################### #
+# ############################################################### #

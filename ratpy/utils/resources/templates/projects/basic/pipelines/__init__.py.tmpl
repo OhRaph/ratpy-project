@@ -1,0 +1,50 @@
+""" ${ProjectName} Item Pipelines module """
+
+import scrapy
+
+# ############################################################### #
+# ############################################################### #
+
+
+class ${ProjectName}ItemPipeline(Logger):
+
+    """ ${ProjectName} Item Pipeline class """
+
+    # ####################################################### #
+    # ####################################################### #
+
+    name = '${projectname}.pipeline'
+
+    crawler = None
+
+    # ####################################################### #
+
+    def __init__(self, crawler):
+
+        self.crawler = crawler
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        pipeline = cls(crawler)
+        crawler.signals.connect(pipeline.open,  signal=scrapy.signals.spider_opened)
+        crawler.signals.connect(pipeline.close, signal=scrapy.signals.spider_closed)
+        return pipeline
+
+    # ####################################################### #
+
+    def open(self, spider):
+        pass
+
+    def close(self, spider):
+        pass
+
+    # ####################################################### #
+
+    def process_item(self, item, spider):
+        return item
+
+    # ####################################################### #
+    # ####################################################### #
+
+# ############################################################### #
+# ############################################################### #

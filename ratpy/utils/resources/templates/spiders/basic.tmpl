@@ -1,0 +1,87 @@
+""" ${Module} module """
+
+import ratpy
+
+from scrapy.linkextractors import LinkExtractor
+
+# ############################################################### #
+# ############################################################### #
+
+DEFAULT_URL = ''
+DEFAULT_LINKER = 'False'
+
+
+class ${ClassName}(ratpy.Spider):
+
+    """ ${ClassName} class """
+
+    name = '${name}'
+
+    def __init__(self, *args, url=DEFAULT_URL, linker=DEFAULT_LINKER, **kwargs):
+        self.linker = (linker == 'True')
+
+        self.subspiders_cls = ${ClassName}SubSpiders
+
+        ratpy.Spider.__init__(self, *args, start_url=url, **kwargs)
+
+# ############################################################### #
+# ############################################################### #
+
+# from ${Module}.spiders import ${ClassName}SubSpider1, ${ClassName}SubSpider2, ...
+
+class ${ClassName}SubSpiders(ratpy.SubSpider):
+
+    """ ${ClassName} SubSpiders class """
+
+    name = '${name}.subspiders'
+    regex = '${ClassName}SubSpiderRegex'
+    linker = True
+    activated = True
+
+    subspiders_cls = {
+        # '${name}_subspider_1': ${ClassName}SubSpider1,
+        # '${name}_subspider_2': ${ClassName}SubSpider2,
+        # ...
+    }
+
+    def start_link(self):
+        yield ratpy.URL('${StartURL}')
+
+    def enqueue_request(self, request, url, *args, **kwargs):
+        # default behavior if this method is not implemented
+        return True
+
+    def process_request(self, request, url, *args, **kwargs):
+        # default behavior if this method is not implemented
+        return request
+
+    def process_response(self, response, url, *args, **kwargs):
+        # default behavior if this method is not implemented
+        return response
+
+    def process_input(self, response, url, *args, **kwargs):
+        # default behavior if this method is not implemented
+        return response
+
+    def parse(self, response, url, *args, **kwargs):
+        # default behavior if this method is not implemented
+        # return []
+
+        # here is an example on how to return Item
+        yield ratpy.Item(
+            infos=response.url,
+            pipeline='nothingless'
+        )
+
+        # here is an example on how to return URL or Link or Request
+        for link in LinkExtractor().extract_links(response):
+            yield ratpy.URL(link.url, param='x')
+            # or yield ratpy.Link(ratpy.URL(link.url, param='x'), priority=1, cb_kwargs=kwargs)
+            # or yield ratpy.Request(url=ratpy.URL(link.url, param='x'), priority=1, cb_kwargs=kwargs)
+
+    def process_output(self, result, *args, url, item=None, **kwargs):
+        # default behavior if this method is not implemented
+        return item
+
+# ############################################################### #
+# ############################################################### #

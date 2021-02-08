@@ -1,0 +1,26 @@
+""" ${ProjectName} module """
+
+import ratpy
+
+from ${ProjectName} import spiders
+
+# ############################################################### #
+# ############################################################### #
+
+DEFAULT_URL = ''
+DEFAULT_LINKER = 'False'
+
+
+class ${ProjectName}(ratpy.Spider):
+
+    """ ${ProjectName} class """
+
+    name = '${projectname}'
+    subspiders_cls = spiders.${ProjectName}SubSpiders
+
+    def __init__(self, *args, url=DEFAULT_URL, linker=DEFAULT_LINKER, **kwargs):
+        self.linker = (linker == 'True')
+        ratpy.Spider.__init__(self, *args, start_url=url, **kwargs)
+
+# ############################################################### #
+# ############################################################### #

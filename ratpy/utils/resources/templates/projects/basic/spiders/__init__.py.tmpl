@@ -1,0 +1,69 @@
+""" ${ProjectName} SubSpiders module """
+
+import ratpy
+
+from scrapy.linkextractors import LinkExtractor
+
+# from ${projectname}.spiders.subspider1 import ${ProjectName}SubSpider1
+# from ${projectname}.spiders.subspider2 import ${ProjectName}SubSpider2
+
+# ############################################################### #
+# ############################################################### #
+
+
+class ${ProjectName}SubSpiders(ratpy.SubSpider):
+
+    """ ${ProjectName} SubSpiders class """
+
+    name = '${projectname}.subspiders'
+    regex = '${ProjectName}SubSpiderRegex'
+    linker = True
+    activated = True
+
+    subspiders_cls = {
+        # '${projectname_subspider_1}': ${ProjectName}SubSpider1,
+        # '${projectname_subspider_2}': ${ProjectName}SubSpider2,
+        # ...
+    }
+
+    def start_link(self):
+        yield ratpy.URL('')
+
+    def enqueue_request(self, request, url, *args, **kwargs):
+        # default behavior if this method is not implemented
+        return True
+
+    def process_request(self, request, url, *args, **kwargs):
+        # default behavior if this method is not implemented
+        return request
+
+    def process_response(self, response, url, *args, **kwargs):
+        # default behavior if this method is not implemented
+        return response
+
+    def process_input(self, response, url, *args, **kwargs):
+        # default behavior if this method is not implemented
+        return response
+
+    def parse(self, response, url, *args, **kwargs):
+        # default behavior if this method is not implemented
+        # return []
+
+        # here is an example on how to return Item
+        yield ratpy.Item(
+            infos=response.url,
+            pipeline='nothingless'
+        )
+
+        # here is an example on how to return URL or Link or Request
+        for link in LinkExtractor().extract_links(response):
+            yield ratpy.URL(link.url, param='x')
+            # or yield ratpy.Link(ratpy.URL(link.url, param='x'), priority=1, cb_kwargs=kwargs)
+            # or yield ratpy.Request(url=ratpy.URL(link.url, param='x'), priority=1, cb_kwargs=kwargs)
+
+    def process_output(self, result, *args, url, item=None, **kwargs):
+        # default behavior if this method is not implemented
+        return item
+
+# ############################################################### #
+# ############################################################### #

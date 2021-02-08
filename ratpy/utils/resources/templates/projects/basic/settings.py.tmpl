@@ -1,0 +1,140 @@
+""" ${ProjectName} Settings module """
+
+
+# ############################################################### #
+# ############################################################### #
+
+BOT_NAME = '${projectname} bot name'
+
+# RESOURCES
+RESOURCES_DIR = './resources/'
+
+# WORK
+WORK_DIR = './work/'
+
+# LOGS
+LOG_ENABLED = True
+LOG_LEVEL = 'INFO'
+LOG_DIR = './logs/'
+LOG_IN_FILES = True
+LOG_LEVEL_IN_FILES = 'INFO'
+LOG_IN_ONE_FILE = True
+LOG_LEVEL_IN_ONE_FILE = 'INFO'
+
+# ############################################################### #
+# ############################################################### #
+
+# COMMANDS
+EDITOR = 'atom'
+BROWSER = 'google-chrome'
+
+NEW_SPIDER_MODULE = ''
+
+# TEST SERVER
+TEST_SERVER_URL = 'http://localhost:9494'
+TEST_SERVER_NB_PAGES = 1000
+TEST_SERVER_NB_PAGE_LINKS = 50
+
+# DOWNLOADER
+CONCURRENT_ITEMS = 100
+
+CONCURRENT_REQUESTS = 64
+CONCURRENT_REQUESTS_PER_DOMAIN = 16
+CONCURRENT_REQUESTS_PER_IP = 0
+
+DOWNLOAD_DELAY = 0
+
+DOWNLOAD_HANDLERS = {}
+RANDOMIZE_DOWNLOAD_DELAY = True
+
+# LOADER
+SPIDER_MODULES = ['${projectname}']
+
+# PIPELINE
+ITEM_PIPELINES = {
+    '${projectname}.pipelines.${ProjectName}ItemPipeline': 10
+    }
+
+# ############################################################### #
+# ############################################################### #
+
+# DOWNLOADER MIDDLEWARES
+DOWNLOADER_MIDDLEWARES = {
+    '${projectname}.middlewares.${ProjectName}DownloaderMiddleware': 10
+    }
+
+# DEFAULT HEADERS
+DEFAULT_REQUEST_HEADERS = {
+    'Accept': 'application/json,text/html;q=0.75',
+    'Accept-Language': 'fr,en;q=0.75,*;q=0.5'
+    }
+# REDIRECT
+REDIRECT_ENABLED = True
+REDIRECT_MAX_TIMES = 10
+REDIRECT_PRIORITY_ADJUST = +5
+METAREFRESH_ENABLED = True
+METAREFRESH_IGNORE_TAGS = []
+METAREFRESH_MAXDELAY = 100
+# RETRY
+RETRY_ENABLED = True
+RETRY_TIMES = 2
+RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 429]
+RETRY_PRIORITY_ADJUST = -1
+# ROBOT.TXT
+ROBOTSTXT_OBEY = False
+ROBOTSTXT_PARSER = 'scrapy.robotstxt.ProtegoRobotParser'
+ROBOTSTXT_USER_AGENT = None
+# STATS
+DOWNLOADER_STATS = True
+# USER AGENT
+USER_AGENT = '${projectname} user agent'
+# TIMEMOUT
+DOWNLOAD_TIMEOUT = 180
+
+# ############################################################### #
+# ############################################################### #
+
+# SPIDER MIDDLEWARES
+SPIDER_MIDDLEWARES = {
+    '${projectname}.middlewares.${ProjectName}SpiderMiddleware': 10
+    }
+
+# DEPTH
+DEPTH_LIMIT = 0
+DEPTH_STATS_VERBOSE = False
+DEPTH_PRIORITY = 0
+# URL LENGTH
+URLLENGTH_LIMIT = 2083
+
+# ############################################################### #
+# ############################################################### #
+
+# EXTENSIONS
+EXTENSIONS = {
+    '${projectname}.extensions.${ProjectName}Extension' : 10
+    }
+
+# CORE STATS
+CORE_STATS_ENABLED = True
+# LOG STATS
+LOG_STATS_ENABLED = True
+LOG_STATS_INTERVAL = 10.0
+# MEMORY USAGE
+MEMORY_USAGE_ENABLED = True
+MEMORY_USAGE_WARNING_MB = 0
+MEMORY_USAGE_LIMIT_MB = 0
+MEMORY_USAGE_CHECK_INTERVAL_SECONDS = 30.0
+MEMORY_USAGE_NOTIFY_MAIL = ['your_mail_adress+${projectname}@gmail.com']
+# SPIDER STATE
+SPIDER_STATE_ENABLED = True
+
+# ############################################################### #
+
+# CLOSE SPIDER
+CLOSESPIDER_TIMEOUT = 0
+CLOSESPIDER_PAGECOUNT = 0
+CLOSESPIDER_ITEMCOUNT = 0
+CLOSESPIDER_ERRORCOUNT = 0
+
+# ############################################################### #
+# ############################################################### #

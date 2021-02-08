@@ -1,0 +1,110 @@
+""" ${ProjectName} Middlewares module """
+
+import scrapy
+
+# ############################################################### #
+# ############################################################### #
+
+
+class ${ProjectName}DownloaderMiddleware():
+
+    """ ${ProjectName} Downloader Middleware class """
+
+    # ####################################################### #
+    # ####################################################### #
+
+    name = '${projectname}.middleware.downloader'
+
+    crawler = None
+
+    # ####################################################### #
+
+    def __init__(self, crawler):
+
+        self.crawler = crawler
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        middleware = cls(crawler)
+        crawler.signals.connect(middleware.open,  signal=scrapy.signals.spider_opened)
+        crawler.signals.connect(middleware.close, signal=scrapy.signals.spider_closed)
+        return middleware
+
+    # ####################################################### #
+
+    def open(self, spider):
+        pass
+
+    def close(self, spider):
+        pass
+
+    # ####################################################### #
+
+    def process_request(self, request, spider):
+        return request
+
+    def process_response(self, request, response, spider):
+        return response
+
+    def process_exception(self, request, exception, spider):
+        pass
+
+    # ####################################################### #
+    # ####################################################### #
+
+# ############################################################### #
+# ############################################################### #
+
+
+class ${ProjectName}SpiderMiddleware():
+
+    """ ${ProjectName} Spider Middleware class """
+
+    # ####################################################### #
+    # ####################################################### #
+
+    name = '${projectname}.middleware.spider'
+
+    crawler = None
+
+    # ####################################################### #
+
+    def __init__(self, crawler):
+
+        self.crawler = crawler
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        middleware = cls(crawler)
+        crawler.signals.connect(middleware.open,  signal=scrapy.signals.spider_opened)
+        crawler.signals.connect(middleware.close, signal=scrapy.signals.spider_closed)
+        return middleware
+
+    # ####################################################### #
+
+    def open(self, spider):
+        pass
+
+    def close(self, spider):
+        pass
+
+    # ####################################################### #
+
+    def process_spider_input(self, response, spider):
+        return response
+
+    def process_spider_output(self, response, result, spider):
+        return result
+
+    def process_spider_exception(self, response, exception, spider):
+        pass
+
+    @staticmethod
+    def process_start_requests(start_requests, spider):
+        yield from start_requests
+
+    # ####################################################### #
+    # ####################################################### #
+
+# ############################################################### #
+# ############################################################### #
