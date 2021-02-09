@@ -121,8 +121,8 @@ DNS_TIMEOUT = 60
 
 # SCHEDULER
 SCHEDULER = 'ratpy.config.scheduler.RatpyScheduler'
-SCHEDULER_DISK_QUEUE = 'ratpy.config.scheduler.queues.PickleLifoDiskQueue'
-SCHEDULER_MEMORY_QUEUE = 'ratpy.config.scheduler.queues.LifoMemoryQueue'
+SCHEDULER_DISK_QUEUE = 'ratpy.config.scheduler.queues.PickleFifoDiskQueue'
+SCHEDULER_MEMORY_QUEUE = 'ratpy.config.scheduler.queues.FifoMemoryQueue'
 SCHEDULER_PRIORITY_QUEUE = 'ratpy.config.scheduler.queues.RatpyPriorityQueue'
 DUPEFILTER_CLASS = 'ratpy.config.scheduler.dupefilter.RatpyDupefilter'
 

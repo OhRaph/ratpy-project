@@ -11,6 +11,7 @@ __all__ = ['Item']
 
 
 class Item(scrapy.Item):
+    website = Field()
     infos = Field()
     pipeline = Field()
 

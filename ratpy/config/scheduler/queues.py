@@ -4,7 +4,7 @@ import os
 import marshal
 import pickle
 
-from queuelib import queue  # pylint: disable=import-error
+from queuelib import queue
 
 from ratpy.utils import create_instance
 from ratpy.http.request.serialize import request_to_dict, request_from_dict
