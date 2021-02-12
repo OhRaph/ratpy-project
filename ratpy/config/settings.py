@@ -52,8 +52,8 @@ TEST_SERVER_NB_PAGE_LINKS = 50
 # DOWNLOADER
 CONCURRENT_ITEMS = 100
 
-CONCURRENT_REQUESTS = 16
-CONCURRENT_REQUESTS_PER_DOMAIN = 4
+CONCURRENT_REQUESTS = 32
+CONCURRENT_REQUESTS_PER_DOMAIN = 16
 CONCURRENT_REQUESTS_PER_IP = 0
 
 DOWNLOADER = 'scrapy.core.downloader.Downloader'
@@ -121,8 +121,8 @@ DNS_TIMEOUT = 60
 
 # SCHEDULER
 SCHEDULER = 'ratpy.config.scheduler.RatpyScheduler'
-SCHEDULER_DISK_QUEUE = 'ratpy.config.scheduler.queues.PickleFifoDiskQueue'
-SCHEDULER_MEMORY_QUEUE = 'ratpy.config.scheduler.queues.FifoMemoryQueue'
+SCHEDULER_DISK_QUEUE = 'ratpy.config.scheduler.queues.PickleDiskQueue'
+SCHEDULER_MEMORY_QUEUE = 'ratpy.config.scheduler.queues.PickleMemoryQueue'
 SCHEDULER_PRIORITY_QUEUE = 'ratpy.config.scheduler.queues.RatpyPriorityQueue'
 DUPEFILTER_CLASS = 'ratpy.config.scheduler.dupefilter.RatpyDupefilter'
 

@@ -4,13 +4,13 @@ import json
 
 from w3lib.url import is_url
 
-from scrapy.http import Request
 from scrapy.item import BaseItem
 from scrapy.utils.conf import arglist_to_dict
 from scrapy.utils.spider import iterate_spider_output
 from scrapy.exceptions import UsageError
 from scrapy.linkextractors import LinkExtractor
 
+import ratpy
 from ratpy.commands import RatpyCommand, TestEnvironment, TestSpider, set_command
 from ratpy.utils.display import pprint_python
 
@@ -34,7 +34,7 @@ def _run_callback(response, callback, cb_kwargs=None):
     for x in iterate_spider_output(callback(response, **cb_kwargs)):
         if isinstance(x, (BaseItem, dict)):
             items.append(x)
-        elif isinstance(x, Request):
+        elif isinstance(x, ratpy.Request):
             requests.append(x)
     return items, requests
 
@@ -135,7 +135,7 @@ class Command(RatpyCommand):
             with TestEnvironment():
                 self.crawler_process.start()
         else:
-            request = Request(url, cb_kwargs=opts.cbkwargs)
+            request = ratpy.Request(url=url, cb_kwargs=opts.cbkwargs)
             spider_cls.start_requests = lambda s: [self._prepare_request(s, request, opts)]
             self.crawler_process.crawl(spider_cls, **opts.spargs)
             self.pcrawler = list(self.crawler_process.crawlers)[0]
@@ -225,9 +225,6 @@ class Command(RatpyCommand):
 
 # ############################################################### #
 # ############################################################### #
-
-
-import ratpy
 
 
 class ParseSpider(TestSpider):

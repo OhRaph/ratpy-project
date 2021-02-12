@@ -18,5 +18,9 @@ class Genius(ratpy.SubSpider):
         'ui': ui.GeniusUI
     }
 
+    def process_output(self, url, item, *args, **kwargs):
+        item['website'] = 'genius'
+        return item
+
 # ############################################################### #
 # ############################################################### #

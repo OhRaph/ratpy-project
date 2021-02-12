@@ -17,7 +17,7 @@ REQUEST_FINGERPRINT_CACHE = weakref.WeakKeyDictionary()
 def request_fingerprint(request):
 
     cache = REQUEST_FINGERPRINT_CACHE.setdefault(request, {})
-    cache_key = (request.method, tuple(to_bytes(h.lower()) for h in sorted(request.cb_kwargs)))
+    cache_key = (request.method, str(request.timestamp), tuple(to_bytes(h.lower()) for h in sorted(request.cb_kwargs)))
     if cache_key not in cache:
         _fp = hashlib.sha1()
         _fp.update(to_bytes(canonicalize_url(request.url, keep_fragments=False, keep_blank_values=False)))

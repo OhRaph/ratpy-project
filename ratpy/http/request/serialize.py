@@ -33,12 +33,12 @@ def request_to_dict(request, spider=None):
         'meta': request.meta,
         'encoding': request.encoding,
         'priority': request.priority,
+        'timestamp': request.timestamp,
         'dont_filter': request.dont_filter,
         'flags': request.flags,
         'cb_kwargs': request.cb_kwargs
     }
-
-    if type(request) is not Request:  # pylint: disable=unidiomatic-typecheck
+    if type(request) is not Request:
         res['_class'] = request.__module__ + '.' + request.__class__.__name__
     return res
 
@@ -70,6 +70,7 @@ def request_from_dict(dic, spider=None):
         meta=dic['meta'],
         encoding=dic['encoding'],
         priority=dic['priority'],
+        timestamp=dic['timestamp'],
         dont_filter=dic['dont_filter'],
         flags=dic.get('flags'),
         cb_kwargs=dic.get('cb_kwargs')
@@ -91,7 +92,8 @@ def _find_method(obj, func):
                 for name, obj_func in members:
                     if obj_func.__func__ is func.__func__:
                         return name
-    raise ValueError("Function %s is not a method of: %s" % (func, obj))
+    print('Function {} is not a method of : {}'.format(func, obj))
+    raise ValueError('Function {} is not a method of : {}'.format(func, obj))
 
 # ############################################################### #
 
@@ -101,7 +103,9 @@ def _get_method(obj, name):
     try:
         return getattr(obj, name)
     except AttributeError:
-        raise ValueError("Method %r not found in: %s" % (name, obj))
+        pass
+    print('Method {} not found in : {}'.format(name, obj))
+    raise ValueError('Method {} not found in : {}'.format(name, obj))
 
 # ############################################################### #
 # ############################################################### #

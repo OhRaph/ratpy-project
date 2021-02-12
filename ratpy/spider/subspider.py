@@ -304,32 +304,30 @@ class SubSpider(Utils):
     def process_results_(self, results, url, *args, item=None, **kwargs):
 
         def format_results(res):
-            if isinstance(res, Item):
-                res = [res]
-            elif isinstance(res, (URL, Link)):
-                res = [res]
-            elif isinstance(res, Iterable):
-                pass
-            elif res is None:
-                res = []
-            else:
-                self.logger.error('{:_<18} : SKIP {} {}'.format('Invalid ['+res.__class__.__name__+']', url.path, url.params))
-                res = []
-            return res
+            if isinstance(res, (Item, URL, Link)):
+                return [res]
+            if isinstance(res, Iterable):
+                return res
+            if res is None:
+                return []
+            self.logger.error('{:_<18} : SKIP {} {}'.format('Invalid ['+res.__class__.__name__+']', url.path, url.params))
+            return []
 
         self.logger.debug('{:_<18} :      {} {}'.format('Process Results', url.path, url.params))
 
         for result in filter(None, format_results(results)):
             if isinstance(result, Item):
-                if item != result:
-                    results = self.call_function('process_output', result, url, *args, item=result, **kwargs)
-                    yield from self.process_results_(results, url, *args, item=result, **kwargs)
+                if result != item:
+                    item = result
+                    results = self.call_function('process_output', item, url, item, *args, **kwargs)
+                    yield from self.process_results_(results, url, *args, item=item, **kwargs)
                 else:
-                    yield result
+                    yield item
             elif isinstance(result, (URL, Link)):
-                yield from [result] if self.linker else []
+                if self.linker:
+                    yield result
             else:
-                yield from self.process_results_(results, url, *args, item=item, **kwargs)
+                yield from self.process_results_(result, url, *args, item=item, **kwargs)
         yield from []
 
     # ####################################################### #

@@ -32,8 +32,11 @@ class Request(scrapy.http.Request):
     # ####################################################### #
     # ####################################################### #
 
-    def __init__(self, *args, url='', **kwargs):
+    timestamp = None
+
+    def __init__(self, *args, url='', timestamp=None, **kwargs):
         scrapy.http.Request.__init__(self, url, *args, **kwargs)
+        self.timestamp = timestamp if timestamp else None
 
     @staticmethod
     def create(value, *args, origin='', **kwargs):
@@ -55,7 +58,7 @@ class Request(scrapy.http.Request):
 
     def get_attributes(self):
 
-        names = ['method', 'headers', 'body', 'cookies', 'meta', 'flags', 'encoding', 'priority', 'dont_filter', 'cb_kwargs']
+        names = ['method', 'headers', 'body', 'cookies', 'meta', 'flags', 'encoding', 'priority', 'timestamp', 'dont_filter', 'cb_kwargs']
         attributes = {name: getattr(self, name, None) for name in names}
         attributes['url'] = URL(self.url)
 
@@ -64,7 +67,10 @@ class Request(scrapy.http.Request):
     def replace(self, **kwargs):
 
         if kwargs != {}:
-            request = scrapy.http.Request.replace(self, **kwargs)
+            for x in ['url', 'method', 'headers', 'body', 'cookies', 'meta', 'flags', 'encoding', 'priority', 'timestamp', 'dont_filter', 'cb_kwargs']:
+                kwargs.setdefault(x, getattr(self, x))
+            cls = kwargs.pop('cls', self.__class__)
+            request = cls(**kwargs)
         else:
             request = self
 

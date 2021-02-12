@@ -4,8 +4,6 @@ import os
 import tempfile
 import webbrowser
 
-from scrapy.utils.response import open_in_browser
-
 from ratpy.commands import fetch
 from ratpy.utils.display import pformat_html, pformat_json
 

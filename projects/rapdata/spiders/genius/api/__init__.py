@@ -48,9 +48,6 @@ class GeniusAPI(ratpy.SubSpider):
     def process_input(self, response, *args, **kwargs):
         return json.loads(response.body).get('response', {})
 
-    def process_output(self, *args, item=None, **kwargs):
-        return item
-
 # ############################################################### #
 # ############################################################### #
 

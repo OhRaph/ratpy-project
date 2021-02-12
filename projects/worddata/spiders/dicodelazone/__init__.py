@@ -32,6 +32,10 @@ class DicoDeLaZone(ratpy.SubSpider):
         [x.extract() for x in res('style')]
         return res
 
+    def process_output(self, url, item, *args, **kwargs):
+        item['website'] = 'dictionnairedelazone'
+        return item
+
 # ############################################################### #
 # ############################################################### #
 

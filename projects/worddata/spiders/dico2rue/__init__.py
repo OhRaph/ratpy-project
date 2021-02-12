@@ -50,5 +50,9 @@ class Dico2Rue(ratpy.SubSpider):
                 tmp = url.path.rsplit('-', 1)
                 yield ratpy.Link(ratpy.URL(tmp[0] + '-' + str(int(tmp[1]) + 1)))
 
+    def process_output(self, url, item, *args, **kwargs):
+        item['website'] = 'dico2rue'
+        return item
+
 # ############################################################### #
 # ############################################################### #

@@ -2,10 +2,10 @@
 
 from w3lib.url import is_url
 
-from scrapy.http import Request
 from scrapy.exceptions import UsageError
 from scrapy.utils.datatypes import SequenceExclude
 
+import ratpy
 from ratpy.commands import RatpyCommand, TestEnvironment, TestSpider, set_command
 from ratpy.utils.display import pprint_html, pprint_json
 
@@ -83,7 +83,7 @@ class Command(RatpyCommand):
             with TestEnvironment():
                 self.crawler_process.start()
         else:
-            request = Request(url, callback=self._save_response)
+            request = ratpy.Request(url=url, callback=self._save_response)
             if not opts.no_redirect:
                 request.meta['handle_httpstatus_list'] = SequenceExclude(range(300, 400))
             else:
@@ -134,9 +134,6 @@ class Command(RatpyCommand):
 
 # ############################################################### #
 # ############################################################### #
-
-
-import ratpy
 
 
 class FetchSpider(TestSpider):

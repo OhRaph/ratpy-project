@@ -50,6 +50,10 @@ class MusiqueUrbaine(ratpy.SubSpider):
         [x.extract() for x in res('style')]
         return res
 
+    def process_output(self, url, item, *args, **kwargs):
+        item['website'] = 'musique_urbaine'
+        return item
+
 # ############################################################### #
 # ############################################################### #
 
