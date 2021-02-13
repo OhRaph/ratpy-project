@@ -16,7 +16,7 @@ class Dico2Rue(ratpy.SubSpider):
     name = 'worddata.spiders.dico2rue'
     regex = 'www.dico2rue.com/dictionnaire/alphabet/[A-Z](/page-[0-9]+)?'
     linker = True
-    activated = True
+    enabled = True
 
     def __init__(self, *args, **kwargs):
         ratpy.SubSpider.__init__(self, *args, **kwargs)

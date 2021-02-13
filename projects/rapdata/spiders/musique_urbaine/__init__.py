@@ -33,7 +33,7 @@ class MusiqueUrbaine(ratpy.SubSpider):
     name = 'rapdata.spiders.musiqueurbaine'
     regex = 'www\\.musiqueurbaine\\.fr'
     linker = True
-    activated = True
+    enabled = True
 
     def __init__(self, *args, **kwargs):
         self.subspiders_cls = {

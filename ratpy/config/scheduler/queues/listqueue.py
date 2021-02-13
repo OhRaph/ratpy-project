@@ -3,7 +3,6 @@
 import time
 
 from ratpy.utils import Logger
-from ratpy.utils.path import create_directory
 
 # ############################################################### #
 # ############################################################### #

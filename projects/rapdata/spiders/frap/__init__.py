@@ -27,7 +27,7 @@ class Frap(ratpy.SubSpider):
     name = 'rapdata.spiders.frap'
     regex = 'frap\\.ru(/page/[0-9]+)?'
     linker = True
-    activated = True
+    enabled = True
 
     def __init__(self, *args, **kwargs):
         ratpy.SubSpider.__init__(self, *args, **kwargs)

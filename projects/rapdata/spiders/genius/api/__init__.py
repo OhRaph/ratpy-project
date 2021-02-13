@@ -26,7 +26,7 @@ class GeniusAPI(ratpy.SubSpider):
     name = 'rapdata.spiders.genius.api'
     regex = 'api\\.genius\\.com'
     linker = True
-    activated = True
+    enabled = True
 
     def __init__(self, spider, *args, **kwargs):
         self.subspiders_cls = {

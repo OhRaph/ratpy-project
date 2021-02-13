@@ -16,7 +16,7 @@ class DicoDeLaZone(ratpy.SubSpider):
     name = 'worddata.spiders.dicodelazone'
     regex = 'dictionnairedelazone.fr'
     linker = True
-    activated = True
+    enabled = True
 
     def __init__(self, *args, **kwargs):
         self.subspiders_cls = {

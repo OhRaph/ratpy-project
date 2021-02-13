@@ -51,7 +51,7 @@ class SubSpider(Utils):
 
     name = 'ratpy.subspider'
 
-    activated = True
+    enabled = True
     linker = True
     regex = ''
     interval = 0
@@ -77,7 +77,7 @@ class SubSpider(Utils):
 
         Utils.__init__(self, self.spider.crawler, *args, log_dir=self.log_dir, **kwargs)
 
-        self.activated = self.get_attribute('activated')
+        self.enabled = self.get_attribute('enabled')
         self.linker = self.get_attribute('linker')
         self.regex = self.get_attribute('regex')
         self.interval = self.get_attribute('interval')
@@ -89,7 +89,7 @@ class SubSpider(Utils):
             self.subspiders[_name] = init_subspiders(_subspider_cls, spider, self.name + '.' + _name, *args, **kwargs)
         self.subspiders = self.subspiders.items()
 
-        self._state = STOP if self.activated else DISABLED
+        self._state = STOP if self.enabled else DISABLED
         self._index_status = Index(self.spider.crawler, work_dir=self.work_dir, log_dir=self.log_dir, name=self.name + '.status', columns=['status', 'url', 'args', 'kwargs'])
         self._index_items = Index(self.spider.crawler, work_dir=self.work_dir, log_dir=self.log_dir, name=self.name + '.items', columns=['url', 'pipeline'])
 
@@ -113,7 +113,7 @@ class SubSpider(Utils):
     def possible_attributes():
         res = super(SubSpider, SubSpider).possible_attributes()
         res.update([
-            Attribute('activated', bool, True),
+            Attribute('enabled', bool, True),
             Attribute('linker', bool, True),
             Attribute('regex', str, ''),
             Attribute('interval', (Interval, str, int), 0),
@@ -183,11 +183,11 @@ class SubSpider(Utils):
 
     @classmethod
     def match(cls, url):
-        return url.match(cls.regex) if cls.activated else False
+        return url.match(cls.regex) if cls.enabled else False
 
     @classmethod
     def next(cls, url):
-        return url.next(cls.regex) if cls.activated else URL('')
+        return url.next(cls.regex) if cls.enabled else URL('')
 
     # ####################################################### #
     # ####################################################### #
