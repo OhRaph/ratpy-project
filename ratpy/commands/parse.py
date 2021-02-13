@@ -4,7 +4,6 @@ import json
 
 from w3lib.url import is_url
 
-from scrapy.item import BaseItem
 from scrapy.utils.conf import arglist_to_dict
 from scrapy.utils.spider import iterate_spider_output
 from scrapy.exceptions import UsageError
@@ -32,7 +31,7 @@ def _run_callback(response, callback, cb_kwargs=None):
     items, requests = [], []
 
     for x in iterate_spider_output(callback(response, **cb_kwargs)):
-        if isinstance(x, (BaseItem, dict)):
+        if isinstance(x, (ratpy.Item, dict)):
             items.append(x)
         elif isinstance(x, ratpy.Request):
             requests.append(x)
@@ -207,6 +206,7 @@ class Command(RatpyCommand):
                     req.meta['_depth'] = depth + 1
                     req.meta['_callback'] = req.callback
                     req.callback = callback
+                    req.dont_filter = True
                 return requests
 
         if opts.meta:
@@ -218,6 +218,7 @@ class Command(RatpyCommand):
         request.meta['_depth'] = 1
         request.meta['_callback'] = request.callback
         request.callback = callback
+        request.dont_filter = True
         return request
 
     # ####################################################### #

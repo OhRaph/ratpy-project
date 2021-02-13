@@ -21,6 +21,7 @@ def request_fingerprint(request):
     if cache_key not in cache:
         _fp = hashlib.sha1()
         _fp.update(to_bytes(canonicalize_url(request.url, keep_fragments=False, keep_blank_values=False)))
+        _fp.update(to_bytes(str(request.timestamp)))
         _fp.update(request.body or b'')
         cache[cache_key] = _fp.hexdigest()
     return cache[cache_key]

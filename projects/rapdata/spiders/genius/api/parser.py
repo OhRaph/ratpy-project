@@ -101,13 +101,14 @@ class Parser(ratpy.Linker):
 
     # ####################################################### #
 
-    def parse_artist_songs(self, content, *args, linker=True, artist='', **kwargs):
+    def parse_artist_songs(self, content, *args, linker=True, id_artist='', **kwargs):
 
-        names = self.parse_names([x['primary_artist'] for x in content], *args, linker=linker, **kwargs)
+        ids = self.parse_ids([x['primary_artist'] for x in content], *args, linker=linker, **kwargs)
+        names = self.parse_names([x['primary_artist'] for x in content], *args, linker=False, **kwargs)
         songs = []
-        for _x, _name in zip(content, names):
-            if linker or (_name == artist):
-                songs.append(self.parse_id(_x, *args, linker=True, cb_kwargs={'artist': _name}, **kwargs))
+        for _x, _id, _name in zip(content, ids, names):
+            if _id == id_artist:
+                songs.append(self.parse_id(_x, *args, linker=linker, cb_kwargs={'artist': _name}, **kwargs))
         return songs
 
     def parse_artists(self, content, *args, **kwargs):

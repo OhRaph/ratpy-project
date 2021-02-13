@@ -25,7 +25,7 @@ class PostponeRequest(Exception):
 # ############################################################### #
 
 
-class Request(scrapy.http.Request):
+class Request(scrapy.Request):
 
     """ Ratpy Request class """
 
@@ -35,7 +35,7 @@ class Request(scrapy.http.Request):
     timestamp = None
 
     def __init__(self, *args, url='', timestamp=None, **kwargs):
-        scrapy.http.Request.__init__(self, url, *args, **kwargs)
+        scrapy.Request.__init__(self, url, *args, **kwargs)
         self.timestamp = timestamp if timestamp else None
 
     @staticmethod
@@ -67,7 +67,7 @@ class Request(scrapy.http.Request):
     def replace(self, **kwargs):
 
         if kwargs != {}:
-            for x in ['url', 'method', 'headers', 'body', 'cookies', 'meta', 'flags', 'encoding', 'priority', 'timestamp', 'dont_filter', 'cb_kwargs']:
+            for x in ['url', 'method', 'headers', 'body', 'cookies', 'meta', 'flags', 'encoding', 'priority', 'timestamp', 'dont_filter', 'cb_kwargs', 'callback', 'errback']:
                 kwargs.setdefault(x, getattr(self, x))
             cls = kwargs.pop('cls', self.__class__)
             request = cls(**kwargs)

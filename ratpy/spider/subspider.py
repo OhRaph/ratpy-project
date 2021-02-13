@@ -3,6 +3,7 @@
 import inspect
 import os
 import scrapy
+import time
 
 from collections.abc import Iterable
 
@@ -13,6 +14,7 @@ from ratpy.http.response import Response, IgnoreResponse
 from ratpy.http.url import URL
 from ratpy.link import Link
 from ratpy.item import Item
+from ratpy.interval import Interval
 
 __all__ = [
     'SubSpider', 'init_subspiders', 'SUBSPIDERS_CLS_ERROR',
@@ -21,6 +23,7 @@ __all__ = [
 
 # ############################################################### #
 # ############################################################### #
+
 
 SUBSPIDERS_CLS_ERROR = 'Invalid type for attribute \'subspiders_cls\' : use class SubSpider or dict.'
 
@@ -51,6 +54,7 @@ class SubSpider(Utils):
     activated = True
     linker = True
     regex = ''
+    interval = 0
 
     spider = None
     subspiders_cls = {}
@@ -65,7 +69,7 @@ class SubSpider(Utils):
 
     # ####################################################### #
 
-    def __init__(self, spider, *args, regex='', **kwargs):
+    def __init__(self, spider, *args, **kwargs):
         self.spider = spider
 
         self.work_dir = os.path.join(self.spider.work_dir, 'subspiders', self.name)
@@ -76,6 +80,9 @@ class SubSpider(Utils):
         self.activated = self.get_attribute('activated')
         self.linker = self.get_attribute('linker')
         self.regex = self.get_attribute('regex')
+        self.interval = self.get_attribute('interval')
+        if isinstance(self.interval, (str, int)):
+            self.interval = Interval(self.interval)
 
         self.subspiders = {}
         for _name, _subspider_cls in self.get_attribute('subspiders_cls').items():
@@ -106,9 +113,10 @@ class SubSpider(Utils):
     def possible_attributes():
         res = super(SubSpider, SubSpider).possible_attributes()
         res.update([
-            Attribute('regex', str, ''),
-            Attribute('linker', bool, True),
             Attribute('activated', bool, True),
+            Attribute('linker', bool, True),
+            Attribute('regex', str, ''),
+            Attribute('interval', (Interval, str, int), 0),
             Attribute('subspiders_cls', dict, {})
             ])
         return res
@@ -122,7 +130,7 @@ class SubSpider(Utils):
             Function('process_request', (type(None), Request), None),
             Function('process_response', (type(None), Response), None),
             Function('process_input', (type(None), object), None),
-            Function('parse', (type(None), Iterable, Item, URL, Link), []),
+            Function('parse', (type(None), Iterable, Item, URL, Link, Interval), []),
             Function('process_output', (type(None), Iterable, Item, URL, Link), [])
             ])
         return res
@@ -213,6 +221,7 @@ class SubSpider(Utils):
         enqueue = True
         if self.match(url):
             url = self.next(url)
+
             try:
                 enqueue = self.call_function('enqueue_request', True, request, url, *args, **kwargs)
                 if not enqueue:
@@ -233,6 +242,7 @@ class SubSpider(Utils):
 
         if self.match(url):
             url = self.next(url)
+
             try:
                 request = self.call_function('process_request', request, request, url, *args, **kwargs)
                 if request is None:
@@ -253,6 +263,7 @@ class SubSpider(Utils):
 
         if self.match(url):
             url = self.next(url)
+
             try:
                 response = self.call_function('process_response', response, response, url, *args, **kwargs)
                 if response is None:
@@ -274,17 +285,29 @@ class SubSpider(Utils):
         status = '!'
         if self.match(url):
             url = self.next(url)
+
             response = self.call_function('process_input', response, response, url, *args, **kwargs)
             if response is not None:
                 if len(url.remaining) == 0:
                     status = False
+                    interval = self.interval
                     results = self.call_function('parse', [], response, url, *args, **kwargs)
                     for result in self.process_results_(results, url, *args, **kwargs):
                         status = True
                         if isinstance(result, Item):
-                            self.logger.info('{:_<18} : OK   {} {} --> \'{}\''.format('Parse', url.path, url.params, result['pipeline']))
                             self._index_items.add(url=url, pipeline=result['pipeline'])
+                            self.logger.info('{:_<18} : OK   {} {} --> \'{}\''.format('Parse', url.path, url.params, result['pipeline']))
+                        elif isinstance(result, Interval):
+                            interval = result
+                            continue
                         yield result
+
+                    if interval > 0:
+                        yield Link(url, timestamp=time.time()+interval, cb_kwargs=kwargs.update(interval.cb_kwargs))
+                        self.logger.debug('{:_<18} : OK   {} {} --> {}'.format('Interval', url.path, url.params, interval))
+                    else:
+                        self.logger.debug('{:_<18} : NO   {} {}'.format('Interval', url.path, url.params))
+
                     if status is False:
                         self.logger.info('{:_<18} : DROP {} {}'.format('Parse', url.path, url.params))
                     else:
@@ -326,6 +349,8 @@ class SubSpider(Utils):
             elif isinstance(result, (URL, Link)):
                 if self.linker:
                     yield result
+            elif isinstance(result, Interval):
+                yield result
             else:
                 yield from self.process_results_(result, url, *args, item=item, **kwargs)
         yield from []

@@ -155,3 +155,21 @@ def create_instance(objcls, settings, crawler, *args, **kwargs):
 
 # ############################################################### #
 # ############################################################### #
+
+
+import time
+
+
+def monitored(func):
+    def _execute(obj, *args, **kwargs):
+        start = time.time() * 1000
+        res = func(obj, *args, **kwargs)
+        end = time.time() * 1000
+        # print(func.__module__, func.__name__, end-start)
+        return res
+    return _execute
+
+# ############################################################### #
+# ############################################################### #
+
+

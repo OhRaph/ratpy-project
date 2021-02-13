@@ -1,8 +1,10 @@
 """ RapData GeniusAPI Spiders module """
 
+import datetime
 import json
 import os
 import ratpy
+import re
 
 from projects.rapdata.spiders.genius.api.parser import Parser
 from projects.rapdata.spiders.genius import items
@@ -52,10 +54,26 @@ class GeniusAPI(ratpy.SubSpider):
 # ############################################################### #
 
 
+def _calc_interval(release='', default_interval=10, **kwargs):
+    current_year = int(datetime.datetime.now().year)
+    release_year = int(datetime.datetime.now().year)
+
+    if release is None:
+        release = ''
+    search = re.search(r'(\d{4})', release)
+    if search and search.group(1):
+        release_year = int(search.group(1))
+
+    yield ratpy.Interval(str((current_year - release_year + 1) * default_interval) + 'd', **kwargs)
+
+# ############################################################### #
+
+
 class GeniusAPIArtist(ratpy.SubSpider):
 
     name = 'rapdata.spiders.genius.api.artist'
     regex = '/artists/[0-9]+'
+    interval = '30d'
 
     def __init__(self, *args, **kwargs):
         self.subspiders_cls = {
@@ -103,6 +121,7 @@ class GeniusAPIArtistSongs(ratpy.SubSpider):
 
     name = 'rapdata.spiders.genius.api.artist.songs'
     regex = '/songs'
+    interval = '10d'
 
     def enqueue_request(self, request, *args, **kwargs):
         return bool(request.cb_kwargs.get('artist', ''))
@@ -122,11 +141,12 @@ class GeniusAPIArtistSongs(ratpy.SubSpider):
                     cb_kwargs={'artist': artist}
                 )
             )
+        id_artist = url.split('/')[-2]
         yield items.Artist.Songs(
-            infos=url.split('/')[-2],
+            infos=id_artist,
             pipeline='artists/{}'.format(artist),
             page=url.params['page'],
-            songs=_parser.parse_artist_songs(_x, artist=artist)
+            songs=_parser.parse_artist_songs(_x, id_artist=id_artist)
         )
         yield from _parser.links
 
@@ -163,7 +183,7 @@ class GeniusAPIAlbum(ratpy.SubSpider):
             )
         )
         yield from _parser.links
-
+        yield from _calc_interval(_x['release_date'])
 
 # ############################################################### #
 # ############################################################### #
@@ -211,6 +231,7 @@ class GeniusAPISong(ratpy.SubSpider):
             relations=_parser.parse_song_relations(_x['song_relationships'])
         )
         yield from _parser.links
+        yield from _calc_interval(_x['release_date'])
 
 # ############################################################### #
 # ############################################################### #
@@ -220,6 +241,7 @@ class GeniusAPIAnnotation(ratpy.SubSpider):
 
     name = 'rapdata.spiders.genius.api.annotation'
     regex = '/annotations/[0-9]+'
+    interval = '90d'
 
     def enqueue_request(self, request, *args, **kwargs):
         return bool(request.cb_kwargs.get('artist', '') and request.cb_kwargs.get('music', ''))

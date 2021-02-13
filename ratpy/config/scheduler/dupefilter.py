@@ -47,7 +47,7 @@ class RatpyDupefilter(Logger):
 
         self.spider = spider
 
-        self.work_path = os.path.join(work_directory(self.crawler.settings), 'scheduler', self.spider.name, 'requests.fingerprints')
+        self.work_path = os.path.join(work_directory(self.crawler.settings), 'scheduler', 'requests.fingerprints')
         create_file(self.work_path, 'w+', '')
 
         with open(self.work_path, 'r+') as file:

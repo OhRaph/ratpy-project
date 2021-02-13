@@ -14,8 +14,16 @@ def _next_page(url, step, **kwargs):
     if url.path.split('/')[-1] == step:
         yield ratpy.Link(ratpy.URL(url.path + '/page/2'), cb_kwargs=kwargs)
     else:
-        tmp = url.path.rsplit('/', 1)
-        yield ratpy.Link(ratpy.URL(tmp[0] + '/' + str(int(tmp[1]) + 1)), cb_kwargs=kwargs)
+        x = url.path.rsplit('/', 1)
+        yield ratpy.Link(ratpy.URL(x[0] + '/' + str(int(x[1]) + 1)), cb_kwargs=kwargs)
+
+
+def _calc_interval(url, step, nb_pages=5, default_interval=10, **kwargs):
+    if url.path.split('/')[-1] == step:
+        x = 0
+    else:
+        x = int(url.path.rsplit('/', 1)[1]) - 1
+    yield ratpy.Interval(str((nb_pages-x)*default_interval)+'d', **kwargs)
 
 # ############################################################### #
 
@@ -62,6 +70,7 @@ class Artists(ratpy.SubSpider):
 
     name = 'rapdata.spiders.musiqueurbaine.artists'
     regex = '/artistes(/page/[0-9]+)?'
+    interval = '5d'
 
     def parse(self, response, url, *args, **kwargs):
         _parser = Parser()
@@ -78,6 +87,7 @@ class Artist(ratpy.SubSpider):
 
     name = 'rapdata.spiders.musiqueurbaine.artist'
     regex = '/artiste/[a-z0-9-]+'
+    interval = '15d'
 
     def __init__(self, *args, **kwargs):
         self.subspiders_cls = {
@@ -151,6 +161,7 @@ class ArtistDiscography(ratpy.SubSpider):
             )
 
         yield from _next_page(url, 'discographie', artist=artist)
+        yield from _calc_interval(url, 'discographie')
 
 # ############################################################### #
 
@@ -176,6 +187,7 @@ class ArtistMedias(ratpy.SubSpider):
                 continue
 
         yield from _next_page(url, 'medias', artist=artist)
+        yield from _calc_interval(url, 'medias')
 
 # ############################################################### #
 # ############################################################### #
@@ -185,6 +197,7 @@ class Album(ratpy.SubSpider):
 
     name = 'rapdata.spiders.musiqueurbaine.album'
     regex = '/album/[a-z0-9-]+'
+    interval = '30d'
 
     def __init__(self, *args, **kwargs):
         self.subspiders_cls = {
@@ -233,7 +246,7 @@ class AlbumMedias(ratpy.SubSpider):
                 continue
 
         yield from _next_page(url, 'medias', artist=artist, album=album)
-
+        yield from _calc_interval(url, 'medias')
 
 # ############################################################### #
 # ############################################################### #

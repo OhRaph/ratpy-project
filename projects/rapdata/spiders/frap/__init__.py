@@ -10,6 +10,18 @@ from projects.rapdata.spiders.frap import items
 # ############################################################### #
 
 
+def _next_page(url):
+    x = url.path.rsplit('/', 1)
+    yield ratpy.URL(x[0] + '/' + str(int(x[1]) + 1))
+
+
+def _calc_interval(url, nb_pages=10, default_interval=2, **kwargs):
+    x = int(url.path.rsplit('/', 1)[1]) - 1
+    yield ratpy.Interval(str((nb_pages - x) * default_interval) + 'd', **kwargs)
+
+# ############################################################### #
+
+
 class Frap(ratpy.SubSpider):
 
     name = 'rapdata.spiders.frap'
@@ -59,8 +71,8 @@ class Frap(ratpy.SubSpider):
                 # print(url, artist, album)
                 continue
 
-        tmp = url.path.rsplit('/', 1)
-        yield ratpy.URL(tmp[0]+'/'+str(int(tmp[1])+1))
+        yield from _next_page(url)
+        yield from _calc_interval(url)
 
     def process_output(self, url, item, *args, **kwargs):
         item['website'] = 'frap'

@@ -68,6 +68,7 @@ class GeniusUILyrics(ratpy.SubSpider):
 
     name = 'rapdata.spiders.genius.ui.song.lyrics'
     regex = '/[-_\\w]*-lyrics'
+    interval = '15d'
 
     def enqueue_request(self, request, *args, **kwargs):
         return bool(request.cb_kwargs.get('artist', '') and request.cb_kwargs.get('music', ''))

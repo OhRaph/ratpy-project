@@ -92,7 +92,7 @@ def _find_method(obj, func):
                 for name, obj_func in members:
                     if obj_func.__func__ is func.__func__:
                         return name
-    print('Function {} is not a method of : {}'.format(func, obj))
+    # print('Function {} is not a method of : {}'.format(func, obj))
     raise ValueError('Function {} is not a method of : {}'.format(func, obj))
 
 # ############################################################### #
@@ -104,7 +104,7 @@ def _get_method(obj, name):
         return getattr(obj, name)
     except AttributeError:
         pass
-    print('Method {} not found in : {}'.format(name, obj))
+    # print('Method {} not found in : {}'.format(name, obj))
     raise ValueError('Method {} not found in : {}'.format(name, obj))
 
 # ############################################################### #

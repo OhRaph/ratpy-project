@@ -83,7 +83,7 @@ class Command(RatpyCommand):
             with TestEnvironment():
                 self.crawler_process.start()
         else:
-            request = ratpy.Request(url=url, callback=self._save_response)
+            request = ratpy.Request(url=url, callback=self._save_response, dont_filter=True)
             if not opts.no_redirect:
                 request.meta['handle_httpstatus_list'] = SequenceExclude(range(300, 400))
             else:
@@ -142,7 +142,7 @@ class FetchSpider(TestSpider):
 
     def __init__(self, crawler, *args, callback=None, **kwargs):
         TestSpider.__init__(self, crawler, *args, **kwargs)
-        self.start_requests = lambda: [ratpy.Request(url=self.request_url, callback=callback)]
+        self.start_requests = lambda: [ratpy.Request(url=self.request_url, callback=callback, dont_filter=True)]
 
     def parse(self, response, *args, **kwargs):
         yield from []
