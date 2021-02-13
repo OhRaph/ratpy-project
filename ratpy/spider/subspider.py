@@ -1,6 +1,7 @@
 """ Ratpy SubSpider module """
 
 import inspect
+import json
 import os
 import scrapy
 import time
@@ -138,6 +139,10 @@ class SubSpider(Utils):
     @property
     def infos(self):
         infos = super().infos
+        infos['enabled'] = self.enabled
+        infos['linker'] = self.linker
+        infos['regex'] = self.regex
+        infos['interval'] = (self.interval, str(self.interval))
         infos['index'] = self._index_status.infos
         infos['subspiders'] = {_name: _step.infos for _name, _step in self.subspiders}
         return infos
@@ -150,7 +155,7 @@ class SubSpider(Utils):
             self._index_status.open()
             self._index_items.open()
             self._state = START
-            self.logger.info('{:_<18} : OK   ITEMS = {:5} STATUS = {}'.format('Open', self._index_items.length, self._index_status.counts))
+            self.logger.info('{:_<18} : OK   ITEMS = {:5} STATUS = {}'.format('Open', self._index_items.length, json.dumps(self._index_status.counts, indent=None, sort_keys=False)))
 
         elif self._state == START:
             self.logger.error('{:_<18} : FAIL !'.format('Open'))
@@ -164,7 +169,7 @@ class SubSpider(Utils):
             self._index_status.close()
             self._index_items.close()
             self._state = STOP
-            self.logger.info('{:_<18} : OK   ITEMS = {:5} STATUS = {}'.format('Close', self._index_items.length, self._index_status.counts))
+            self.logger.info('{:_<18} : OK   ITEMS = {:5} STATUS = {}'.format('Close', self._index_items.length, json.dumps(self._index_status.counts, indent=None, sort_keys=False)))
 
         elif self._state == STOP:
             self.logger.error('{:_<18} : FAIL !'.format('Close'))

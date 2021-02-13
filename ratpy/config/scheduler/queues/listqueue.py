@@ -17,9 +17,6 @@ class RatpyListQueue(Logger):
 
     name = 'queue.list'
 
-    work_dir = None
-    log_dir = None
-
     _list = None
     _total = None
 
@@ -27,10 +24,15 @@ class RatpyListQueue(Logger):
 
     def __init__(self, crawler, work_dir, log_dir):
 
-        self.work_dir = work_dir
-        self.log_dir = log_dir
+        Logger.__init__(self, crawler, log_dir=log_dir)
 
-        Logger.__init__(self, crawler, log_dir=self.log_dir)
+    # ####################################################### #
+
+    @property
+    def infos(self):
+        infos = super().infos
+        infos['size'] = len(self)
+        return infos
 
     # ####################################################### #
 

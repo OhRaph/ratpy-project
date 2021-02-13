@@ -1,8 +1,8 @@
 """ Ratpy Scheduler Queues module """
 
-import time
-
+import os
 import pickle
+import time
 
 from ratpy.config.scheduler.queues.listqueue import RatpyListQueue
 from ratpy.config.scheduler.queues.sqlqueue import RatpySQLQueue
@@ -23,6 +23,13 @@ def _ratpy_non_serialization_queue(queue_class):
             self.spider = crawler.spider
             super(RatpyRequestQueue, self).__init__(crawler, work_dir, log_dir)
 
+        @property
+        def infos(self):
+            infos = super().infos
+            infos['class'] = queue_class.__module__ + '.' + queue_class.__name__,
+            infos['serialization'] = False
+            return infos
+
         @classmethod
         def from_crawler(cls, crawler, work_dir, log_dir, *args, **kwargs):
             return cls(crawler, work_dir, log_dir)
@@ -41,6 +48,13 @@ def _ratpy_serialization_queue(queue_class, serialize, deserialize):
         def __init__(self, crawler, work_dir, log_dir, *args, **kwargs):
             self.spider = crawler.spider
             super(RatpyRequestQueue, self).__init__(crawler, work_dir, log_dir)
+
+        @property
+        def infos(self):
+            infos = super().infos
+            infos['class'] = queue_class.__module__ + '.' + queue_class.__name__
+            infos['serialization'] = True
+            return infos
 
         @classmethod
         def from_crawler(cls, crawler, work_dir, log_dir, *args, **kwargs):
@@ -92,26 +106,36 @@ class RatpyPriorityQueue(Logger):
     work_dir = None
     log_dir = None
 
-    queue_cls = None
+    queues_cls = None
     queues = None
     start_prios = None
 
     # ####################################################### #
 
-    def __init__(self, crawler, queue_cls, work_dir, log_dir, start_prios=()):
+    def __init__(self, crawler, type, queues_cls, work_dir, log_dir, start_prios=()):
+        self.name = self.name + '.' + type
         self.crawler = crawler
-        self.queue_cls = queue_cls
+        self.queues_cls = queues_cls
         self.queues = {}
         self.start_prios = start_prios
 
-        self.work_dir = work_dir
-        self.log_dir = log_dir
+        self.work_dir = os.path.join(work_dir, self.name)
+        self.log_dir = os.path.join(log_dir, self.name)
 
         Logger.__init__(self, self.crawler, log_dir=self.log_dir)
 
     @classmethod
-    def from_crawler(cls, crawler, queue_cls, work_dir, log_dir, start_prios=()):
-        return cls(crawler, queue_cls, work_dir, log_dir, start_prios)
+    def from_crawler(cls, crawler, type, queues_cls, work_dir, log_dir, start_prios=()):
+        return cls(crawler, type, queues_cls, work_dir, log_dir, start_prios)
+
+    # ####################################################### #
+
+    @property
+    def infos(self):
+        infos = super().infos
+        infos['size'] = len(self)
+        infos['queues'] = {priority: queue.infos for priority, queue in self.queues.items()}
+        return infos
 
     # ####################################################### #
 
@@ -138,7 +162,7 @@ class RatpyPriorityQueue(Logger):
     # ####################################################### #
 
     def qfactory(self, priority):
-        return create_instance(self.queue_cls, None, self.crawler, self.work_dir + '/' + str(priority), self.log_dir + '/' + str(priority))
+        return create_instance(self.queues_cls, None, self.crawler, self.work_dir + '/' + str(priority), self.log_dir + '/' + str(priority))
 
     @staticmethod
     def priority(request):

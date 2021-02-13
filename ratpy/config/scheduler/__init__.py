@@ -77,15 +77,10 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
     @property
     def infos(self):
         infos = super().infos
-        infos['queues_classes'] = {
-            'priority': self.q_priority_cls.__module__ + '.' + self.q_priority_cls.__name__,
-            'memory': self.q_memory_cls.__module__ + '.' + self.q_memory_cls.__name__,
-            'disk': self.q_disk_cls.__module__ + '.' + self.q_disk_cls.__name__
-        }
         infos['queues'] = {
-            'memory': {'activated': self.q_memory is not None, 'size': len(self.q_memory or [])},
-            'disk': {'activated': self.q_disk is not None, 'size': len(self.q_disk or [])}
-        }
+            'memory': self.q_memory.infos if self.q_memory is not None else {},
+            'disk': self.q_disk.infos if self.q_disk is not None else {}
+            }
         infos['dupefilter'] = self.dupefilter.infos
         return infos
 
@@ -125,6 +120,8 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
     # ####################################################### #
 
     def __len__(self):
+        if self.crawler.settings.get('COMMAND') == 'infos':
+            return 0
         size_q_disk = len(self.q_disk or []) if self.crawler.settings.get('WORK_ON_DISK', False) else 0
         size_q_memory = len(self.q_memory or [])
         return size_q_disk + size_q_memory
@@ -195,12 +192,15 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
             self.logger.debug('{:_<18} : NO   [{: <8}]'.format('Next', 'FINISHED'))
             return None
 
+        if self.crawler.settings.get('COMMAND') == 'infos':
+            return None
+
         return _next()
 
     # ####################################################### #
 
     def _memory_queue(self):
-        return create_instance(self.q_priority_cls, settings=None, crawler=self.crawler, queue_cls=self.q_memory_cls, work_dir='', log_dir=os.path.join(self.log_dir, 'queues'))
+        return create_instance(self.q_priority_cls, settings=None, crawler=self.crawler, type='memory', queues_cls=self.q_memory_cls, work_dir='', log_dir=os.path.join(self.log_dir, 'queues'))
 
     def _memory_queue_push(self, request):
         if self.q_memory is None:
@@ -221,7 +221,7 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
 
     def _disk_queue(self):
         state = self._read_disk_queue_state()
-        return create_instance(self.q_priority_cls, settings=None, crawler=self.crawler, queue_cls=self.q_disk_cls, work_dir=os.path.join(self.work_dir, 'queues'), log_dir=os.path.join(self.log_dir, 'queues'), start_prios=state)
+        return create_instance(self.q_priority_cls, settings=None, crawler=self.crawler, type='disk', queues_cls=self.q_disk_cls, work_dir=os.path.join(self.work_dir, 'queues'), log_dir=os.path.join(self.log_dir, 'queues'), start_prios=state)
 
     def _disk_queue_push(self, request):
         if self.q_disk is None or not self.crawler.settings.get('WORK_ON_DISK', False):

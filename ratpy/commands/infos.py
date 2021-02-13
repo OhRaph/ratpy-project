@@ -63,6 +63,8 @@ class Command(RatpyCommand):
             return
 
         spider_cls.start_requests = lambda s: self._save_infos(s)
+
+        self.crawler_process.settings['WORK_ON_DISK'] = True
         self.crawler_process.crawl(spider_cls)
         self.crawler_process.start()
 

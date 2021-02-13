@@ -39,7 +39,7 @@ class Utils(AttributesChecker, FunctionsChecker):
     @property
     def infos(self):
         infos = super().infos
-        # infos['attributes'] = list(self.attributes)
+        infos['attributes'] = list(self.attributes)
         infos['functions'] = list(self.functions)
         return infos
 

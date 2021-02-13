@@ -56,7 +56,6 @@ class Index(Logger):
     def infos(self):
         infos = super().infos
         infos['work_path'] = self.work_path
-        infos['log_path'] = self.log_path
         infos['counts'] = self.counts
         return infos
 
@@ -89,7 +88,7 @@ class Index(Logger):
 
     @property
     def counts(self):
-        return json.dumps({column: self._index[column].nunique() for column in self._columns}, indent=None, sort_keys=False)
+        return {column: self._index[column].nunique() for column in self._columns}
 
     @property
     def size(self):

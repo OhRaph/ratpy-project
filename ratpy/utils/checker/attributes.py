@@ -78,7 +78,7 @@ class AttributesChecker(Checker):
         if self._attributes_cache is None:
             self._attributes_cache = {}
             for attribute_name, attribute_params in self._possible_attributes.items():
-                if self._check_attribute(attribute_name):
+                if self._check_attribute(attribute_name) and getattr(self, attribute_name) != attribute_params[1]:
                     self._attributes_cache[attribute_name] = attribute_params
         return self._attributes_cache
 

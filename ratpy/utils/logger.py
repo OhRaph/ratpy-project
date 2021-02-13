@@ -73,9 +73,10 @@ class Logger:
     @property
     def infos(self):
         return {
-            'name': self.name,
-            'class': self.__module__ + '.' + self.__class__.__name__
             # 'id': id(self)
+            'name': self.name,
+            'class': self.__module__ + '.' + self.__class__.__name__,
+            'log_path': self.log_path
             }
 
     # ####################################################### #

@@ -1,5 +1,6 @@
 """ Ratpy Scheduler Queues module """
 
+import os
 import sqlite3
 import threading
 import time
@@ -42,8 +43,7 @@ class RatpySQLQueue(Logger):
     _SQL_DELETE = 'DELETE FROM {table_name} WHERE _id = ?'
     _SQL_COUNT = 'SELECT COUNT(_id) FROM {table_name}'
 
-    work_dir = None
-    log_dir = None
+    work_path = None
 
     storage = 'DISK'
     timeout = None
@@ -62,16 +62,23 @@ class RatpySQLQueue(Logger):
 
     def __init__(self, crawler, work_dir, log_dir, multithreading=True, timeout=10.0):
 
-        self.work_dir = work_dir
-        self.log_dir = log_dir
-
-        Logger.__init__(self, crawler, log_dir=self.log_dir)
+        Logger.__init__(self, crawler, log_dir=log_dir)
 
         self.multithreading = multithreading
         self.timeout = timeout
 
+        self.work_path = os.path.join(work_dir, 'data.db')
         if self.storage == 'DISK':
-            create_directory(self.work_dir)
+            create_directory(work_dir)
+
+    # ####################################################### #
+
+    @property
+    def infos(self):
+        infos = super().infos
+        infos['work_path'] = self.work_path
+        infos['size'] = len(self)
+        return infos
 
     # ####################################################### #
 
@@ -81,7 +88,7 @@ class RatpySQLQueue(Logger):
             if self.storage == 'MEMORY':
                 conn = sqlite3.connect(':memory:', check_same_thread=not multithreading)
             else:
-                conn = sqlite3.connect('{}/{}'.format(self.work_dir, 'data.db'), timeout=timeout, check_same_thread=not multithreading)
+                conn = sqlite3.connect(self.work_path, timeout=timeout, check_same_thread=not multithreading)
             conn.execute('PRAGMA journal_mode=WAL;')
             return conn
 
