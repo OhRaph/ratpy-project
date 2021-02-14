@@ -317,8 +317,11 @@ class SubSpider(Utils):
                         yield result
 
                     if interval > 0:
-                        yield Link(url, timestamp=time.time()+interval, cb_kwargs=kwargs.update(interval.cb_kwargs))
-                        self.logger.debug('{:_<18} : OK   {} {} --> {}'.format('Interval', url.path, url.params, interval))
+                        if self.crawler.settings.get('COMMAND') in ['crawl', 'runspider']:
+                            yield Link(url, timestamp=time.time()+interval, cb_kwargs=kwargs.update(interval.cb_kwargs))
+                            self.logger.debug('{:_<18} : OK   {} {} --> {}'.format('Interval', url.path, url.params, interval))
+                        else:
+                            yield Link(url, timestamp=time.time(), cb_kwargs=kwargs.update(interval.cb_kwargs))
                     else:
                         self.logger.debug('{:_<18} : NO   {} {}'.format('Interval', url.path, url.params))
 
