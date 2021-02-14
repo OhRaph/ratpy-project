@@ -45,7 +45,7 @@ def _ratpy_serialization_queue(queue_class, serialize, deserialize):
 
         spider = None
 
-        def __init__(self, crawler, directory, *args, **kwargs):
+        def __init__(self, crawler, *args, **kwargs):
             self.spider = crawler.spider
             super(RatpyRequestQueue, self).__init__(crawler, *args, **kwargs)
 
