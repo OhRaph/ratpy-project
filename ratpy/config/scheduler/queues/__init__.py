@@ -187,7 +187,8 @@ class RatpyPriorityQueue(Logger):
 
         success = self.queues[priority].push(request, timestamp)
         if success:
-            self.crawler.stats.inc_value('scheduler/queue/{}/remaining/[{}]'.format(self.queues_type, priority), spider=self.spider)
+            self.crawler.stats.inc_value('scheduler/queue/{}/remaining/[all]'.format(self.queues_type), spider=self.spider)
+            self.crawler.stats.inc_value('scheduler/queue/{}/remaining/[{: >3}]'.format(self.queues_type, priority), spider=self.spider)
             self.logger.debug('{:_<18} : OK   {} [{}]'.format('Push', request.url, timestamp))
         else:
             self.logger.debug('{:_<18} : NO   {} [{}]'.format('Push', request.url, timestamp))
@@ -197,10 +198,12 @@ class RatpyPriorityQueue(Logger):
         request = None
 
         for priority in sorted(self.queues):
-            request = self.queues[priority].pop()
-            if request is not None:
-                self.crawler.stats.dec_value('scheduler/queue/{}/remaining/[{}]'.format(self.queues_type, priority), spider=self.spider)
-                break
+            if len(self.queues[priority]):
+                request = self.queues[priority].pop()
+                if request is not None:
+                    self.crawler.stats.dec_value('scheduler/queue/{}/remaining/[all]'.format(self.queues_type), spider=self.spider)
+                    self.crawler.stats.dec_value('scheduler/queue/{}/remaining/[{: >3}]'.format(self.queues_type, priority), spider=self.spider)
+                    break
 
         if request is not None:
             self.logger.debug('{:_<18} : OK   {}'.format('Pop', request.url))

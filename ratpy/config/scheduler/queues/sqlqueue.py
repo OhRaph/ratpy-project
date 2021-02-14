@@ -16,17 +16,6 @@ sqlite3.enable_callback_tracebacks(True)
 # ############################################################### #
 
 
-def with_conditional_transaction(func):
-    def _execute(obj, *args, **kwargs):
-        with obj.transaction_lock:
-            with obj._putter as tran:
-                stat, param = func(obj, *args, **kwargs)
-                tran.execute(stat, param)
-    return _execute
-
-# ############################################################### #
-
-
 class RatpySQLQueue(Logger):
 
     """ Ratpy SQL Queue class """
@@ -43,6 +32,7 @@ class RatpySQLQueue(Logger):
     _SQL_SELECT = 'SELECT _id, data FROM {table_name} WHERE timestamp < ? ORDER BY timestamp ASC LIMIT 1'
     _SQL_DELETE = 'DELETE FROM {table_name} WHERE _id = ?'
     _SQL_COUNT = 'SELECT COUNT(_id) FROM {table_name}'
+    _SQL_SELECT_OLDER_TIMESTAMP = 'SELECT timestamp FROM {table_name} ORDER BY timestamp ASC LIMIT 1'
 
     work_path = None
 
@@ -138,24 +128,31 @@ class RatpySQLQueue(Logger):
     # ####################################################### #
     # ####################################################### #
 
-    @with_conditional_transaction
-    def _insert(self, item, timestamp):
-        args = (item, timestamp)
-        return self._sql_insert(), args
+    def _insert(self, request, timestamp):
+        args = (request, timestamp)
+        with self.transaction_lock:
+            with self._putter:
+                return self._putter.execute(self._sql_insert(), args)
 
     def _select(self):
         args = (time.time(),)
         return self._getter.execute(self._sql_select(), args).fetchone()
 
-    @with_conditional_transaction
     def _delete(self, key):
         args = (key,)
-        return self._sql_delete(), args
+        with self.transaction_lock:
+            with self._putter:
+                return self._putter.execute(self._sql_delete(), args)
 
     def _count(self):
         args = ()
         row = self._getter.execute(self._sql_count(), args).fetchone()
         return row[0] if row else 0
+
+    def _select_older_timestamp(self):
+        args = ()
+        row = self._getter.execute(self._sql_select_older_timestamp(), args).fetchone()
+        return row[0] if row else None
 
     # ####################################################### #
 
@@ -178,12 +175,15 @@ class RatpySQLQueue(Logger):
     def _sql_count(self):
         return self._SQL_COUNT.format(table_name=self._table_name)
 
+    def _sql_select_older_timestamp(self):
+        return self._SQL_SELECT_OLDER_TIMESTAMP.format(table_name=self._table_name)
+
     # ####################################################### #
 
     def push(self, request, timestamp):
         self._insert(request, timestamp)
-        self._total += 1
         self.put_event.set()
+        self._total += 1
         self.logger.debug('{:_<18} : OK   [{}]'.format('Push', self.priority))
         return True
 

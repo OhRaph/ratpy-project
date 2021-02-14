@@ -139,14 +139,14 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
         def _enqueue(req):
 
             if self._disk_queue_push(req):
-                self.crawler.stats.inc_value('scheduler/enqueued/disk', spider=self.spider)
-                self.crawler.stats.inc_value('scheduler/enqueued', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/queues/push/disk', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/queues/push', spider=self.spider)
                 self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Enqueue', 'DISK', req.url))
                 return True
 
             if self._memory_queue_push(req):
-                self.crawler.stats.inc_value('scheduler/enqueued/memory', spider=self.spider)
-                self.crawler.stats.inc_value('scheduler/enqueued', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/queues/push/memory', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/queues/push', spider=self.spider)
                 self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Enqueue', 'MEMORY', req.url))
                 return True
 
@@ -179,15 +179,15 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
 
             req = self._memory_queue_pop()
             if req:
-                self.crawler.stats.inc_value('scheduler/dequeued/memory', spider=self.spider)
-                self.crawler.stats.inc_value('scheduler/dequeued', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/queues/pop/memory', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/queues/pop', spider=self.spider)
                 self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Next', 'MEMORY', req.url))
                 return req
 
             req = self._disk_queue_pop()
             if req:
-                self.crawler.stats.inc_value('scheduler/dequeued/disk', spider=self.spider)
-                self.crawler.stats.inc_value('scheduler/dequeued', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/queues/pop/disk', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/queues/pop', spider=self.spider)
                 self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Next', 'DISK', req.url))
                 return req
 

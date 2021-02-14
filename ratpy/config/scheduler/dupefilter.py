@@ -50,10 +50,11 @@ class RatpyDupefilter(Logger):
         self.spider = spider
 
         self.work_path = os.path.join(work_directory(self.crawler.settings), 'scheduler', 'requests.fingerprints')
-        create_file(self.work_path, 'w+', '')
+        if self.work_path and self.crawler.settings.get('WORK_ON_DISK', False):
+            create_file(self.work_path, 'w+', '')
 
-        with open(self.work_path, 'r+') as file:
-            self.fingerprints.update(x.rstrip() for x in file)
+            with open(self.work_path, 'r+') as file:
+                self.fingerprints.update(x.rstrip() for x in file)
 
         self.logger.info('{:_<18} : OK   [{}] Requests : {}'.format('Open', self.spider.name, len(self)))
 
