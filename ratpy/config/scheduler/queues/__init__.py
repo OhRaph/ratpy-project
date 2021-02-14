@@ -19,9 +19,9 @@ def _ratpy_non_serialization_queue(queue_class):
 
         spider = None
 
-        def __init__(self, crawler, work_dir, log_dir, *args, **kwargs):
+        def __init__(self, crawler, *args, **kwargs):
             self.spider = crawler.spider
-            super(RatpyRequestQueue, self).__init__(crawler, work_dir, log_dir)
+            super(RatpyRequestQueue, self).__init__(crawler, *args, **kwargs)
 
         @property
         def infos(self):
@@ -31,8 +31,8 @@ def _ratpy_non_serialization_queue(queue_class):
             return infos
 
         @classmethod
-        def from_crawler(cls, crawler, work_dir, log_dir, *args, **kwargs):
-            return cls(crawler, work_dir, log_dir)
+        def from_crawler(cls, crawler, *args, **kwargs):
+            return cls(crawler, *args, **kwargs)
 
     return RatpyRequestQueue
 
@@ -45,9 +45,9 @@ def _ratpy_serialization_queue(queue_class, serialize, deserialize):
 
         spider = None
 
-        def __init__(self, crawler, work_dir, log_dir, *args, **kwargs):
+        def __init__(self, crawler, *args, **kwargs):
             self.spider = crawler.spider
-            super(RatpyRequestQueue, self).__init__(crawler, work_dir, log_dir)
+            super(RatpyRequestQueue, self).__init__(crawler, *args, **kwargs)
 
         @property
         def infos(self):
@@ -57,8 +57,8 @@ def _ratpy_serialization_queue(queue_class, serialize, deserialize):
             return infos
 
         @classmethod
-        def from_crawler(cls, crawler, work_dir, log_dir, *args, **kwargs):
-            return cls(crawler, work_dir, log_dir)
+        def from_crawler(cls, crawler, *args, **kwargs):
+            return cls(crawler, *args, **kwargs)
 
         def push(self, request, timestamp):
             dictionnary = request_to_dict(request, self.spider)
@@ -99,7 +99,7 @@ class RatpyPriorityQueue(Logger):
     # ####################################################### #
     # ####################################################### #
 
-    name = 'queue.priority'
+    name = 'ratpy.queue.priority'
 
     crawler = None
 
@@ -124,6 +124,8 @@ class RatpyPriorityQueue(Logger):
 
         Logger.__init__(self, self.crawler, log_dir=self.log_dir)
 
+        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
+
     @classmethod
     def from_crawler(cls, crawler, type, queues_cls, work_dir, log_dir, start_prios=()):
         return cls(crawler, type, queues_cls, work_dir, log_dir, start_prios)
@@ -140,18 +142,25 @@ class RatpyPriorityQueue(Logger):
     # ####################################################### #
 
     def open(self):
-        if not self.start_prios:
-            return
+        self.logger.debug('{:_<18}'.format('Open'))
 
         for priority in self.start_prios:
             self.queues[priority] = self.qfactory(priority)
             self.queues[priority].open()
 
+        self.logger.info('{:_<18} : OK'.format('Open'))
+
     def close(self):
+        self.logger.debug('{:_<18}'.format('Close'))
+
         active = []
+
         for _p in sorted(self.queues):
             active.append(_p)
             self.queues[_p].close()
+
+        self.logger.info('{:_<18} : OK'.format('Close'))
+
         return active
 
     # ####################################################### #
@@ -162,29 +171,36 @@ class RatpyPriorityQueue(Logger):
     # ####################################################### #
 
     def qfactory(self, priority):
-        return create_instance(self.queues_cls, None, self.crawler, self.work_dir + '/' + str(priority), self.log_dir + '/' + str(priority))
-
-    @staticmethod
-    def priority(request):
-        return -request.priority
+        return create_instance(self.queues_cls, None, self.crawler, priority, self.work_dir, self.log_dir)
 
     def push(self, request):
-        priority = RatpyPriorityQueue.priority(request)
+        priority = -request.priority
         if priority not in self.queues:
             self.queues[priority] = self.qfactory(priority)
             self.queues[priority].open()
+
         timestamp = request.timestamp or time.time()
-        return self.queues[priority].push(request, timestamp)
+
+        success = self.queues[priority].push(request, timestamp)
+        if success:
+            self.logger.debug('{:_<18} : OK   {} [{}]'.format('Push', request.url, timestamp))
+        else:
+            self.logger.debug('{:_<18} : NO   {} [{}]'.format('Push', request.url, timestamp))
+        return success
 
     def pop(self):
+        request = None
+
         for priority in sorted(self.queues):
             request = self.queues[priority].pop()
-            # if len(self.queues[_p]) == 0:
-            #     self.queues[_p].close()
-            #     del self.queues[_p]
             if request is not None:
-                return request
-        return None
+                break
+
+        if request is not None:
+            self.logger.debug('{:_<18} : OK   {}'.format('Pop', request.url))
+        else:
+            self.logger.debug('{:_<18} : NO'.format('Pop'))
+        return request
 
     # ####################################################### #
     # ####################################################### #

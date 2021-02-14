@@ -34,7 +34,8 @@ class RatpySQLQueue(Logger):
     # ####################################################### #
     # ####################################################### #
 
-    name = 'queue.sql'
+    name = 'ratpy.queue.sql'
+    priority = None
 
     _TABLE_NAME = 'queue'
     _SQL_CREATE = 'CREATE TABLE IF NOT EXISTS {table_name} (_id INTEGER PRIMARY KEY AUTOINCREMENT, data BLOB, timestamp FLOAT)'
@@ -60,16 +61,20 @@ class RatpySQLQueue(Logger):
 
     # ####################################################### #
 
-    def __init__(self, crawler, work_dir, log_dir, multithreading=True, timeout=10.0):
+    def __init__(self, crawler, priority, work_dir, log_dir, *args, multithreading=True, timeout=10.0, **kwargs):
 
-        Logger.__init__(self, crawler, log_dir=log_dir)
+        self.priority = str(priority)
 
         self.multithreading = multithreading
         self.timeout = timeout
 
-        self.work_path = os.path.join(work_dir, 'data.db')
+        self.work_path = os.path.join(work_dir, '['+self.priority+']', self.name+'.db')
         if self.storage == 'DISK':
-            create_directory(work_dir)
+            create_directory(os.path.join(work_dir, '['+self.priority+']'))
+
+        Logger.__init__(self, crawler, log_dir=os.path.join(log_dir, '['+self.priority+']'))
+
+        self.logger.debug('{:_<18} : OK   [{}]'.format('Initialisation', self.priority))
 
     # ####################################################### #
 
@@ -92,6 +97,8 @@ class RatpySQLQueue(Logger):
             conn.execute('PRAGMA journal_mode=WAL;')
             return conn
 
+        self.logger.debug('{:_<18}        [{}]'.format('Open', self.priority))
+
         self._conn = open_connection(self.multithreading, self.timeout)
         self._conn.execute(self._sql_create())
         self._conn.commit()
@@ -110,9 +117,15 @@ class RatpySQLQueue(Logger):
 
         self._total = self._count()
 
+        self.logger.debug('{:_<18} : OK   [{}]'.format('Open', self.priority))
+
     def close(self):
+        self.logger.debug('{:_<18}        [{}]'.format('Close', self.priority))
+
         self._getter.close()
         self._putter.close()
+
+        self.logger.debug('{:_<18} : OK   [{}]'.format('Close', self.priority))
 
     # ####################################################### #
 
@@ -121,9 +134,6 @@ class RatpySQLQueue(Logger):
 
     def __len__(self):
         return self._total
-
-    def __del__(self):
-        self.close()
 
     # ####################################################### #
     # ####################################################### #
@@ -170,10 +180,11 @@ class RatpySQLQueue(Logger):
 
     # ####################################################### #
 
-    def push(self, item, timestamp):
-        self._insert(item, timestamp)
+    def push(self, request, timestamp):
+        self._insert(request, timestamp)
         self._total += 1
         self.put_event.set()
+        self.logger.debug('{:_<18} : OK   [{}]'.format('Push', self.priority))
         return True
 
     def pop(self):
@@ -181,8 +192,12 @@ class RatpySQLQueue(Logger):
         if row and row[0] is not None:
             self._delete(row[0])
             self._total -= 1
-            return row[1]
-        return None
+            request = row[1]
+            self.logger.debug('{:_<18} : OK   [{}]'.format('Pop', self.priority))
+        else:
+            request = None
+            self.logger.debug('{:_<18} : NO   [{}]'.format('Pop', self.priority))
+        return request
 
     # ####################################################### #
     # ####################################################### #

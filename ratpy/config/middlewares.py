@@ -36,6 +36,8 @@ class RatpyDownloaderMiddleware(Logger):
 
         Logger.__init__(self, self.crawler, log_dir=os.path.join(log_directory(crawler.settings), 'middlewares'))
 
+        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
+
     @classmethod
     def from_crawler(cls, crawler):
         middleware = cls(crawler)
@@ -144,6 +146,8 @@ class RatpySpiderMiddleware(Logger):
         self.spiders = {}
 
         Logger.__init__(self, self.crawler, log_dir=os.path.join(log_directory(crawler.settings), 'middlewares'))
+
+        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
 
     @classmethod
     def from_crawler(cls, crawler):

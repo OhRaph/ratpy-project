@@ -61,6 +61,8 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
         self.q_disk = self._disk_queue()
         self.q_memory = self._memory_queue()
 
+        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
+
     @classmethod
     def from_crawler(cls, crawler):
         dupefilter_class = load_object(crawler.settings['DUPEFILTER_CLASS'])
@@ -189,7 +191,7 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
                 self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Next', 'DISK', req.url))
                 return req
 
-            self.logger.debug('{:_<18} : NO   [{: <8}]'.format('Next', 'FINISHED'))
+            self.logger.debug('{:_<18} : NO   [{: <8}]'.format('Next', 'EMPTY'))
             return None
 
         if self.crawler.settings.get('COMMAND') == 'infos':

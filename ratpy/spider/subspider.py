@@ -94,6 +94,8 @@ class SubSpider(Utils):
         self._index_status = Index(self.spider.crawler, work_dir=self.work_dir, log_dir=self.log_dir, name=self.name + '.status', columns=['status', 'url', 'args', 'kwargs'])
         self._index_items = Index(self.spider.crawler, work_dir=self.work_dir, log_dir=self.log_dir, name=self.name + '.items', columns=['url', 'pipeline'])
 
+        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
+
     @classmethod
     def from_spider(cls, spider, *args, **kwargs):
         step = cls(spider, *args, **kwargs)
@@ -150,7 +152,7 @@ class SubSpider(Utils):
     # ####################################################### #
 
     def open(self):
-        # self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug('{:_<18}'.format('Open'))
         if self._state == STOP:
             self._index_status.open()
             self._index_items.open()
@@ -164,7 +166,7 @@ class SubSpider(Utils):
             self.logger.info('{:_<18} : NO   [{}]'.format('Open', 'DISABLED'))
 
     def close(self):
-        # self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug('{:_<18}'.format('Close'))
         if self._state == START:
             self._index_status.close()
             self._index_items.close()
@@ -231,12 +233,15 @@ class SubSpider(Utils):
                 enqueue = self.call_function('enqueue_request', True, request, url, *args, **kwargs)
                 if not enqueue:
                     raise IgnoreRequest
+                self.logger.debug('{:_<18} : OK   {} {}'.format('Enqueue Request', url.path, url.params))
             except IgnoreRequest:
                 self.logger.debug('{:_<18} : DROP {} {}'.format('Enqueue Request', url.path, url.params))
                 raise IgnoreRequest
 
             for _, _subspider in self.subspiders:
                 enqueue = enqueue and _subspider.enqueue_request_(request, url, *args, **kwargs)
+        else:
+            self.logger.debug('{:_<18} : SKIP {} {}'.format('Enqueue Request', url.path, url.params))
 
         return enqueue
 
@@ -252,12 +257,15 @@ class SubSpider(Utils):
                 request = self.call_function('process_request', request, request, url, *args, **kwargs)
                 if request is None:
                     raise IgnoreRequest
+                self.logger.debug('{:_<18} : OK   {} {}'.format('Process Request', url.path, url.params))
             except IgnoreRequest:
                 self.logger.debug('{:_<18} : DROP {} {}'.format('Process Request', url.path, url.params))
                 raise IgnoreRequest
 
             for _, _subspider in self.subspiders:
                 request = _subspider.process_request_(request, url, *args, **kwargs)
+        else:
+            self.logger.debug('{:_<18} : SKIP {} {}'.format('Process Request', url.path, url.params))
 
         return request
 
@@ -273,12 +281,16 @@ class SubSpider(Utils):
                 response = self.call_function('process_response', response, response, url, *args, **kwargs)
                 if response is None:
                     raise IgnoreResponse
+                self.logger.debug('{:_<18} : OK   {} {}'.format('Process Response', url.path, url.params))
             except IgnoreResponse:
                 self.logger.debug('{:_<18} : DROP {} {}'.format('Process Response', url.path, url.params))
                 raise IgnoreResponse
 
             for _, _subspider in self.subspiders:
                 response = _subspider.process_response_(response, url, *args, **kwargs)
+
+        else:
+            self.logger.debug('{:_<18} : SKIP {} {}'.format('Process Response', url.path, url.params))
 
         return response
 
@@ -323,6 +335,7 @@ class SubSpider(Utils):
                         results = _subspider.parse_(response, url, *args, **kwargs) or []
                         yield from self.process_results_(results, url, *args, **kwargs)
         else:
+            self.logger.info('{:_<18} : SKIP {} {}'.format('Parse', url.path, url.params))
             yield
 
         self._index_status.add(status=status, url=url, args=str(args), kwargs=str(kwargs))
@@ -359,6 +372,8 @@ class SubSpider(Utils):
             else:
                 yield from self.process_results_(result, url, *args, item=item, **kwargs)
         yield from []
+
+        self.logger.debug('{:_<18} : OK   {} {}'.format('Process Results', url.path, url.params))
 
     # ####################################################### #
     # ####################################################### #

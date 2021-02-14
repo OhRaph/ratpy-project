@@ -1,5 +1,6 @@
 """ Ratpy Scheduler Queues module """
 
+import os
 import time
 
 from ratpy.utils import Logger
@@ -15,16 +16,21 @@ class RatpyListQueue(Logger):
     # ####################################################### #
     # ####################################################### #
 
-    name = 'queue.list'
+    name = 'ratpy.queue.list'
+    priority = None
 
     _list = None
     _total = None
 
     # ####################################################### #
 
-    def __init__(self, crawler, work_dir, log_dir):
+    def __init__(self, crawler, priority, work_dir, log_dir, *args, **kwargs):
 
-        Logger.__init__(self, crawler, log_dir=log_dir)
+        self.priority = str(priority)
+
+        Logger.__init__(self, crawler, log_dir=os.path.join(log_dir, '['+self.priority+']'))
+
+        self.logger.debug('{:_<18} : OK   [{}]'.format('Initialisation', self.priority))
 
     # ####################################################### #
 
@@ -37,13 +43,21 @@ class RatpyListQueue(Logger):
     # ####################################################### #
 
     def open(self):
+        self.logger.debug('{:_<18}        [{}]'.format('Open', self.priority))
+
         self._list = []
         self._total = 0
 
+        self.logger.debug('{:_<18} : OK   [{}]'.format('Open', self.priority))
+
     def close(self):
+        self.logger.debug('{:_<18}        [{}]'.format('Close', self.priority))
+
         for _ in self._list:
             del self._list[0]
             self._total -= 1
+
+        self.logger.debug('{:_<18} : OK   [{}]'.format('Close', self.priority))
 
     # ####################################################### #
 
@@ -53,23 +67,26 @@ class RatpyListQueue(Logger):
     def __len__(self):
         return self._total
 
-    def __del__(self):
-        self.close()
-
     # ####################################################### #
     # ####################################################### #
 
-    def push(self, item, timestamp):
-        x = (item, timestamp)
+    def push(self, request, timestamp):
+        x = (request, timestamp)
         self._list.append(x)
         self._list.sort(key=lambda elem: elem[1])
         self._total += 1
+        self.logger.debug('{:_<18} : OK   [{}]'.format('Push', self.priority))
+        return True
 
     def pop(self):
         if self._total and self._list[0][1] <= time.time():
             self._total -= 1
-            return self._list.pop(0)[0]
-        return None
+            request = self._list.pop(0)[0]
+            self.logger.debug('{:_<18} : OK   [{}]'.format('Pop', self.priority))
+        else:
+            request = None
+            self.logger.debug('{:_<18} : NO   [{}]'.format('Pop', self.priority))
+        return request
 
     # ####################################################### #
     # ####################################################### #

@@ -178,6 +178,8 @@ class Spider(Utils, scrapy.Spider):
 
         url = URL(response.url if response is not None else '')
 
+        self.logger.debug('{:_<18} :      {} {}'.format('Parse', url.path, url.params))
+
         if len(url.remaining) > 0:
             self.logger.debug('New parse !')
 
@@ -206,6 +208,8 @@ class Spider(Utils, scrapy.Spider):
                 else:
                     self.logger.debug('Other result !')
                     yield from []
+
+        self.logger.debug('{:_<18} : OK   {} {}'.format('Parse', url.path, url.params))
 
     # ####################################################### #
     # ####################################################### #
