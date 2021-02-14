@@ -84,7 +84,7 @@ class RatpyDupefilter(Logger):
 
     def seen(self, request):
 
-        self.crawler.stats.inc_value('dupefilter/inputs', spider=self.spider)
+        self.crawler.stats.inc_value('scheduler/dupefilter/inputs', spider=self.spider)
 
         _fp = RatpyDupefilter.fingerprint(request)
         if _fp in self.fingerprints:
@@ -93,7 +93,7 @@ class RatpyDupefilter(Logger):
 
         self.fingerprints.add(_fp)
 
-        self.crawler.stats.inc_value('dupefilter/outputs', spider=self.spider)
+        self.crawler.stats.inc_value('scheduler/dupefilter/outputs', spider=self.spider)
         return False
 
     @staticmethod

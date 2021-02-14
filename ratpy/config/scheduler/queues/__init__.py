@@ -102,19 +102,23 @@ class RatpyPriorityQueue(Logger):
     name = 'ratpy.queue.priority'
 
     crawler = None
+    spider = None
 
     work_dir = None
     log_dir = None
 
+    queues_type = None
     queues_cls = None
     queues = None
     start_prios = None
 
     # ####################################################### #
 
-    def __init__(self, crawler, type, queues_cls, work_dir, log_dir, start_prios=()):
-        self.name = self.name + '.' + type
+    def __init__(self, crawler, queues_type, queues_cls, work_dir, log_dir, start_prios=()):
+        self.name = self.name + '.' + queues_type
         self.crawler = crawler
+        self.spider = crawler.spider
+        self.queues_type = queues_type
         self.queues_cls = queues_cls
         self.queues = {}
         self.start_prios = start_prios
@@ -183,6 +187,7 @@ class RatpyPriorityQueue(Logger):
 
         success = self.queues[priority].push(request, timestamp)
         if success:
+            self.crawler.stats.inc_value('scheduler/queue/{}/remaining/[{}]'.format(self.queues_type, priority), spider=self.spider)
             self.logger.debug('{:_<18} : OK   {} [{}]'.format('Push', request.url, timestamp))
         else:
             self.logger.debug('{:_<18} : NO   {} [{}]'.format('Push', request.url, timestamp))
@@ -194,6 +199,7 @@ class RatpyPriorityQueue(Logger):
         for priority in sorted(self.queues):
             request = self.queues[priority].pop()
             if request is not None:
+                self.crawler.stats.dec_value('scheduler/queue/{}/remaining/[{}]'.format(self.queues_type, priority), spider=self.spider)
                 break
 
         if request is not None:

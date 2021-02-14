@@ -139,14 +139,14 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
         def _enqueue(req):
 
             if self._disk_queue_push(req):
-                self.crawler.stats.inc_value('scheduler/enqueued/disk')
-                self.crawler.stats.inc_value('scheduler/enqueued')
+                self.crawler.stats.inc_value('scheduler/enqueued/disk', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/enqueued', spider=self.spider)
                 self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Enqueue', 'DISK', req.url))
                 return True
 
             if self._memory_queue_push(req):
-                self.crawler.stats.inc_value('scheduler/enqueued/memory')
-                self.crawler.stats.inc_value('scheduler/enqueued')
+                self.crawler.stats.inc_value('scheduler/enqueued/memory', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/enqueued', spider=self.spider)
                 self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Enqueue', 'MEMORY', req.url))
                 return True
 
@@ -156,7 +156,7 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
         if not request.dont_filter:
 
             if self.dupefilter.seen(request):
-                self.crawler.stats.inc_value('scheduler/filtered')
+                self.crawler.stats.inc_value('scheduler/filtered', spider=self.spider)
                 self.logger.debug('{:_<18} : NO   [{: <8}] \'{}\''.format('Enqueue', 'SEEN', request.url))
                 return False
             else:
@@ -179,15 +179,15 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
 
             req = self._memory_queue_pop()
             if req:
-                self.crawler.stats.inc_value('scheduler/dequeued/memory')
-                self.crawler.stats.inc_value('scheduler/dequeued')
+                self.crawler.stats.inc_value('scheduler/dequeued/memory', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/dequeued', spider=self.spider)
                 self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Next', 'MEMORY', req.url))
                 return req
 
             req = self._disk_queue_pop()
             if req:
-                self.crawler.stats.inc_value('scheduler/dequeued/disk')
-                self.crawler.stats.inc_value('scheduler/dequeued')
+                self.crawler.stats.inc_value('scheduler/dequeued/disk', spider=self.spider)
+                self.crawler.stats.inc_value('scheduler/dequeued', spider=self.spider)
                 self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Next', 'DISK', req.url))
                 return req
 
@@ -210,7 +210,7 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
         try:
             self.q_memory.push(request)
         except ValueError:
-            self.crawler.stats.inc_value('scheduler/unserializable')
+            self.crawler.stats.inc_value('scheduler/unserializable', spider=self.spider)
             return False
         return True
 
@@ -231,7 +231,7 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
         try:
             self.q_disk.push(request)
         except ValueError:
-            self.crawler.stats.inc_value('scheduler/unserializable')
+            self.crawler.stats.inc_value('scheduler/unserializable', spider=self.spider)
             return False
         return True
 

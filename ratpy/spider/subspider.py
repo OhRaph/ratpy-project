@@ -335,7 +335,7 @@ class SubSpider(Utils):
                         results = _subspider.parse_(response, url, *args, **kwargs) or []
                         yield from self.process_results_(results, url, *args, **kwargs)
         else:
-            self.logger.info('{:_<18} : SKIP {} {}'.format('Parse', url.path, url.params))
+            self.logger.debug('{:_<18} : SKIP {} {}'.format('Parse', url.path, url.params))
             yield
 
         self._index_status.add(status=status, url=url, args=str(args), kwargs=str(kwargs))

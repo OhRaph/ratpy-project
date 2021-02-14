@@ -86,6 +86,9 @@ class StatsCollector(Logger):
     def inc_value(self, key, count=1, start=0, spider=None):
         self._stats[key] = self._stats.setdefault(key, start) + count
 
+    def dec_value(self, key, count=1, start=0, spider=None):
+        self._stats[key] = self._stats.setdefault(key, start) - count
+
     def max_value(self, key, value, spider=None):
         self._stats[key] = max(self._stats.setdefault(key, value), value)
 
