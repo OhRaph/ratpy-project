@@ -99,6 +99,7 @@ class Spider(Utils, scrapy.Spider):
 
     def open(self, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Open'))
+        Utils.open(self)
 
         self._index_items.open()
 
@@ -109,6 +110,7 @@ class Spider(Utils, scrapy.Spider):
 
     def close(self, reason, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Close'))
+        Utils.close(self)
 
         self._index_items.close()
 

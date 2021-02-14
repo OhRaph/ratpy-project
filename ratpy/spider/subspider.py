@@ -150,6 +150,8 @@ class SubSpider(Utils):
 
     def open(self):
         self.logger.debug('{:_<18}'.format('Open'))
+        Utils.open(self)
+
         if self._state == STOP:
             self._index_status.open()
             self._index_items.open()
@@ -164,6 +166,8 @@ class SubSpider(Utils):
 
     def close(self):
         self.logger.debug('{:_<18}'.format('Close'))
+        Utils.close(self)
+
         if self._state == START:
             self._index_status.close()
             self._index_items.close()

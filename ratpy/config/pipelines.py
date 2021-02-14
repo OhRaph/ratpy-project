@@ -1,15 +1,14 @@
 """ Ratpy Item Pipelines module """
 
-import os
 import scrapy
 
-from ratpy.utils import Logger, log_directory
+from ratpy.utils import Logger, Monitor
 
 # ############################################################### #
 # ############################################################### #
 
 
-class RatpyItemPipeline(Logger):
+class RatpyItemPipeline(Logger, Monitor):
 
     """ Ratpy Item Pipeline class """
 
@@ -28,6 +27,7 @@ class RatpyItemPipeline(Logger):
 
         self.crawler = crawler
         self.spiders = {}
+        Monitor.__init__(self, self.crawler, directory=self.directory)
         Logger.__init__(self, self.crawler, directory=self.directory)
 
     @classmethod
@@ -41,6 +41,7 @@ class RatpyItemPipeline(Logger):
 
     def open(self, spider):
         self.logger.debug('{:_<18}'.format('Open'))
+        Monitor.open(self)
 
         if spider.name not in self.spiders:
             self.spiders[spider.name] = spider
@@ -51,6 +52,7 @@ class RatpyItemPipeline(Logger):
 
     def close(self, spider):
         self.logger.debug('{:_<18}'.format('Close'))
+        Monitor.close(self)
 
         if spider.name in self.spiders:
             del self.spiders[spider.name]

@@ -2,15 +2,15 @@
 
 import os
 
-from ratpy.utils import Logger
-from ratpy.utils.path import work_directory, log_directory, create_file
+from ratpy.utils import Logger, Monitor
+from ratpy.utils.path import work_directory, create_file
 from ratpy.http.request.fingerprint import request_fingerprint
 
 # ############################################################### #
 # ############################################################### #
 
 
-class RatpyDupefilter(Logger):
+class RatpyDupefilter(Logger, Monitor):
 
     """ Ratpy Dupefilter class """
 
@@ -19,7 +19,7 @@ class RatpyDupefilter(Logger):
 
     name = 'ratpy.dupefilter'
 
-    directory = 'scheduler'
+    directory = None
     crawler = None
     spider = None
 
@@ -29,10 +29,12 @@ class RatpyDupefilter(Logger):
 
     # ####################################################### #
 
-    def __init__(self, crawler):
+    def __init__(self, crawler, directory):
 
+        self.directory = os.path.join(directory, 'dupefilter')
         self.crawler = crawler
 
+        Monitor.__init__(self, self.crawler, directory=self.directory)
         Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, 'requests.fingerprints')
@@ -41,13 +43,14 @@ class RatpyDupefilter(Logger):
         self.logger.debug('{:_<18} : OK'.format('Initialisation'))
 
     @classmethod
-    def from_crawler(cls, crawler):
-        return cls(crawler)
+    def from_crawler(cls, crawler, directory):
+        return cls(crawler, directory)
 
     # ####################################################### #
 
     def open(self, spider):
         self.logger.debug('{:_<18}'.format('Open'))
+        Monitor.open(self)
 
         self.spider = spider
 
@@ -61,6 +64,7 @@ class RatpyDupefilter(Logger):
 
     def close(self, reason):
         self.logger.debug('{:_<18}'.format('Close'))
+        Monitor.close(self)
 
         if self.crawler.settings.get('WORK_ON_DISK', False):
             with open(self.work_file, 'w+') as file:

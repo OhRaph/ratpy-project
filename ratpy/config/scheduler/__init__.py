@@ -3,7 +3,7 @@
 import os
 import json
 
-from ratpy.utils import Logger, load_object, create_instance
+from ratpy.utils import Logger, Monitor, load_object, create_instance
 from ratpy.utils.path import work_directory, create_file
 
 from ratpy.http.url import URL
@@ -13,7 +13,7 @@ from ratpy.http.request import Request, IgnoreRequest
 # ############################################################### #
 
 
-class RatpyScheduler(Logger):
+class RatpyScheduler(Logger, Monitor):
 
     """ Ratpy Scheduler class """
 
@@ -41,15 +41,16 @@ class RatpyScheduler(Logger):
 
     # ####################################################### #
 
-    def __init__(self, crawler, dupefilter, queues_classes=None):
+    def __init__(self, crawler, dupefilter_class, queues_classes=None):
 
         self.crawler = crawler
+        Monitor.__init__(self, self.crawler, directory=self.directory)
         Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, 'requests.active.json')
         create_file(self.work_file, 'w', '[]')
 
-        self.dupefilter = dupefilter
+        self.dupefilter = create_instance(dupefilter_class, self.crawler.settings, self.crawler, self.directory)
 
         self.q_priority_cls = queues_classes['priority']
         self.q_memory_cls = queues_classes['memory']
@@ -63,13 +64,12 @@ class RatpyScheduler(Logger):
     @classmethod
     def from_crawler(cls, crawler):
         dupefilter_class = load_object(crawler.settings['DUPEFILTER_CLASS'])
-        dupefilter = create_instance(dupefilter_class, crawler.settings, crawler)
         queues_classes = {
             'priority': load_object(crawler.settings['SCHEDULER_PRIORITY_QUEUE']),
             'memory': load_object(crawler.settings['SCHEDULER_MEMORY_QUEUE']),
             'disk': load_object(crawler.settings['SCHEDULER_DISK_QUEUE'])
         }
-        return cls(crawler, dupefilter, queues_classes=queues_classes)
+        return cls(crawler, dupefilter_class=dupefilter_class, queues_classes=queues_classes)
 
     # ####################################################### #
 
@@ -88,6 +88,7 @@ class RatpyScheduler(Logger):
 
     def open(self, spider):
         self.logger.debug('{:_<18}'.format('Open'))
+        Monitor.open(self)
 
         self.spider = spider
 
@@ -105,6 +106,7 @@ class RatpyScheduler(Logger):
 
     def close(self, reason):
         self.logger.debug('{:_<18}'.format('Close'))
+        Monitor.close(self)
 
         self.dupefilter.close(reason)
 

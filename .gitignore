@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
-/logs/
-/work/
 /resources/
+/work/
+/logs/
+/monitor/
 .idea/

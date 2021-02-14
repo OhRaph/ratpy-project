@@ -6,7 +6,7 @@ import time
 
 from ratpy.config.scheduler.queues.listqueue import RatpyListQueue
 from ratpy.config.scheduler.queues.sqlqueue import RatpySQLQueue
-from ratpy.utils import create_instance, Logger
+from ratpy.utils import create_instance, Logger, Monitor
 from ratpy.http.request.serialize import request_to_dict, request_from_dict
 
 # ############################################################### #
@@ -23,16 +23,16 @@ def _ratpy_non_serialization_queue(queue_class):
             self.spider = crawler.spider
             super(RatpyRequestQueue, self).__init__(crawler, *args, **kwargs)
 
+        @classmethod
+        def from_crawler(cls, crawler, *args, **kwargs):
+            return cls(crawler, *args, **kwargs)
+
         @property
         def infos(self):
             infos = super().infos
             infos['class'] = queue_class.__module__ + '.' + queue_class.__name__,
             infos['serialization'] = False
             return infos
-
-        @classmethod
-        def from_crawler(cls, crawler, *args, **kwargs):
-            return cls(crawler, *args, **kwargs)
 
     return RatpyRequestQueue
 
@@ -45,9 +45,13 @@ def _ratpy_serialization_queue(queue_class, serialize, deserialize):
 
         spider = None
 
-        def __init__(self, crawler, *args, **kwargs):
+        def __init__(self, crawler, directory, *args, **kwargs):
             self.spider = crawler.spider
             super(RatpyRequestQueue, self).__init__(crawler, *args, **kwargs)
+
+        @classmethod
+        def from_crawler(cls, crawler, *args, **kwargs):
+            return cls(crawler, *args, **kwargs)
 
         @property
         def infos(self):
@@ -55,10 +59,6 @@ def _ratpy_serialization_queue(queue_class, serialize, deserialize):
             infos['class'] = queue_class.__module__ + '.' + queue_class.__name__
             infos['serialization'] = True
             return infos
-
-        @classmethod
-        def from_crawler(cls, crawler, *args, **kwargs):
-            return cls(crawler, *args, **kwargs)
 
         def push(self, request, timestamp):
             dictionnary = request_to_dict(request, self.spider)
@@ -92,7 +92,7 @@ RatpyDiskQueue = _ratpy_serialization_queue(RatpySQLQueue, _pickle_serialize, pi
 # ############################################################### #
 
 
-class RatpyPriorityQueue(Logger):
+class RatpyPriorityQueue(Logger, Monitor):
 
     """ Ratpy Priority Queue class """
 
@@ -117,6 +117,7 @@ class RatpyPriorityQueue(Logger):
         self.directory = os.path.join(directory, self.name)
         self.crawler = crawler
         self.spider = crawler.spider
+        Monitor.__init__(self, self.crawler, directory=self.directory)
         Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.queues_type = queues_type
@@ -143,6 +144,7 @@ class RatpyPriorityQueue(Logger):
 
     def open(self):
         self.logger.debug('{:_<18}'.format('Open'))
+        Monitor.open(self)
 
         for priority in self.start_prios:
             self.queues[priority] = self.qfactory(priority)
@@ -152,6 +154,7 @@ class RatpyPriorityQueue(Logger):
 
     def close(self):
         self.logger.debug('{:_<18}'.format('Close'))
+        Monitor.close(self)
 
         active = []
 
@@ -171,7 +174,7 @@ class RatpyPriorityQueue(Logger):
     # ####################################################### #
 
     def qfactory(self, priority):
-        return create_instance(self.queues_cls, None, self.crawler, priority, self.directory)
+        return create_instance(self.queues_cls, None, self.crawler, self.directory, priority)
 
     def push(self, request):
         priority = -request.priority

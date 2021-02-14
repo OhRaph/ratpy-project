@@ -3,13 +3,13 @@
 import os
 import time
 
-from ratpy.utils import Logger
+from ratpy.utils import Logger, Monitor
 
 # ############################################################### #
 # ############################################################### #
 
 
-class RatpyListQueue(Logger):
+class RatpyListQueue(Logger, Monitor):
 
     """ Ratpy List Queue class """
 
@@ -27,12 +27,13 @@ class RatpyListQueue(Logger):
 
     # ####################################################### #
 
-    def __init__(self, crawler, priority, directory, *args, **kwargs):
+    def __init__(self, crawler, directory, priority, *args, **kwargs):
 
         self.priority = str(priority)
         self.directory = os.path.join(directory, '['+self.priority+']')
         self.crawler = crawler
-        Logger.__init__(self, self.crawler, dir=self.directory)
+        Monitor.__init__(self, self.crawler, directory=self.directory)
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.logger.debug('{:_<18} : OK   [{}]'.format('Initialisation', self.priority))
 
@@ -48,6 +49,7 @@ class RatpyListQueue(Logger):
 
     def open(self):
         self.logger.debug('{:_<18}        [{}]'.format('Open', self.priority))
+        Monitor.open(self)
 
         self._list = []
         self._total = 0
@@ -56,6 +58,7 @@ class RatpyListQueue(Logger):
 
     def close(self):
         self.logger.debug('{:_<18}        [{}]'.format('Close', self.priority))
+        Monitor.close(self)
 
         for _ in self._list:
             del self._list[0]

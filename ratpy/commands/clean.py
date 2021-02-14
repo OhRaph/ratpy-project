@@ -35,8 +35,9 @@ class Command(RatpyCommand):
 
     def add_options(self, parser):
         RatpyCommand.add_options(self, parser)
-        parser.add_option('--no-work', dest='work_dir', action='store_false', default=True, help='do not clean work directory')
+        parser.add_option('--no-works', dest='works_dir', action='store_false', default=True, help='do not clean works directory')
         parser.add_option('--no-logs', dest='logs_dir', action='store_false', default=True, help='do not clean logs directory')
+        parser.add_option('--no-monitors', dest='monitors_dir', action='store_false', default=True, help='do not clean monitors directory')
         parser.add_option('--no-cache', dest='cache', action='store_false', default=True, help='do not clean cache files')
 
     def process_options(self, args, opts):
@@ -50,10 +51,12 @@ class Command(RatpyCommand):
         settings = self.crawler_process.settings
 
         command = 'bash ratpy/utils/resources/clean.sh'
-        if opts.work_dir:
+        if opts.works_dir:
             command = command + ' -d \'' + settings.get('WORK_DIR') + '\''
         if opts.logs_dir:
             command = command + ' -d\'' + settings.get('LOG_DIR') + '\''
+        if opts.monitors_dir:
+            command = command + ' -d\'' + settings.get('MONITOR_DIR') + '\''
         if opts.cache:
             command = command + ' -c'
 

@@ -2,7 +2,7 @@
 
 import scrapy
 
-from ratpy.utils import Logger
+from ratpy.utils import Logger, Monitor
 from ratpy import URL, Item
 
 from ratpy.http.request import Request, IgnoreRequest
@@ -12,7 +12,7 @@ from ratpy.http.response import Response, IgnoreResponse
 # ############################################################### #
 
 
-class RatpyDownloaderMiddleware(Logger):
+class RatpyDownloaderMiddleware(Logger, Monitor):
 
     """ Ratpy Downloader Middleware class """
 
@@ -31,6 +31,7 @@ class RatpyDownloaderMiddleware(Logger):
 
         self.crawler = crawler
         self.spiders = {}
+        Monitor.__init__(self, self.crawler, directory=self.directory)
         Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.logger.debug('{:_<18} : OK'.format('Initialisation'))
@@ -46,6 +47,7 @@ class RatpyDownloaderMiddleware(Logger):
 
     def open(self, spider):
         self.logger.debug('{:_<18}'.format('Open'))
+        Monitor.open(self)
 
         if spider.name not in self.spiders:
             self.spiders[spider.name] = spider
@@ -56,6 +58,7 @@ class RatpyDownloaderMiddleware(Logger):
 
     def close(self, spider):
         self.logger.debug('{:_<18}'.format('Close'))
+        Monitor.close(self)
 
         if spider.name in self.spiders:
             del self.spiders[spider.name]
@@ -63,6 +66,7 @@ class RatpyDownloaderMiddleware(Logger):
         else:
             self.logger.error('{:_<18} : FAIL !'.format('Close'))
             raise RuntimeError("%s middleware not running !" % spider.name)
+
 
     # ####################################################### #
 

@@ -9,14 +9,14 @@ from pkgutil import iter_modules
 
 from ratpy.utils.checker.attributes import Attribute, AttributeParams, AttributesSet, AttributesChecker
 from ratpy.utils.checker.functions import Function, FunctionParams, FunctionsSet, FunctionsChecker
+from ratpy.utils.logger import Logger
+from ratpy.utils.monitor import Monitor
 
 from ratpy.utils.path import *
 
-from ratpy.utils.logger import Logger
-
 __all__ = [
     'Utils',
-    'Logger',
+    'Logger', 'Monitor',
     'Attribute', 'AttributeParams', 'AttributesSet', 'AttributesChecker',
     'Function', 'FunctionParams', 'FunctionsSet', 'FunctionsChecker',
     'sizeof', 'normalize', 'to_unicode', 'to_bytes', 'load_object', 'create_instance'
@@ -26,11 +26,12 @@ __all__ = [
 # ############################################################### #
 
 
-class Utils(AttributesChecker, FunctionsChecker):
+class Utils(Monitor, AttributesChecker, FunctionsChecker):
 
     """ Ratpy Utils class """
 
     def __init__(self, *args, **kwargs):
+        Monitor.__init__(self, *args, **kwargs)
         AttributesChecker.__init__(self, *args, **kwargs)
         FunctionsChecker.__init__(self, *args, **kwargs)
 
@@ -40,6 +41,12 @@ class Utils(AttributesChecker, FunctionsChecker):
         infos['attributes'] = list(self.attributes)
         infos['functions'] = list(self.functions)
         return infos
+
+    def open(self, *args, **kwargs):
+        Monitor.open(self)
+
+    def close(self, *args, **kwargs):
+        Monitor.close(self)
 
 # ############################################################### #
 # ############################################################### #
@@ -150,22 +157,6 @@ def create_instance(objcls, settings, crawler, *args, **kwargs):
     if instance is None:
         raise TypeError("%s.%s returned None" % (objcls.__qualname__, method_name))
     return instance
-
-# ############################################################### #
-# ############################################################### #
-
-
-import time
-
-
-def monitored(func):
-    def _execute(obj, *args, **kwargs):
-        start = time.time() * 1000
-        res = func(obj, *args, **kwargs)
-        end = time.time() * 1000
-        # print(func.__module__, func.__name__, end-start)
-        return res
-    return _execute
 
 # ############################################################### #
 # ############################################################### #

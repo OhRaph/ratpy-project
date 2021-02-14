@@ -19,6 +19,7 @@ class Logger:
     # ####################################################### #
 
     name = 'ratpy.logger'
+    directory = None
 
     crawler = None
 
@@ -29,10 +30,12 @@ class Logger:
 
     def __init__(self, crawler, *args, directory=DEFAULT_DIR, **kwargs):
 
+        self.directory = directory
         self.crawler = crawler
 
-        self.log_file = os.path.join(log_directory(self.crawler.settings), directory, self.name+'.log')
-        create_file(self.log_file, 'w+', '')
+        self.log_file = os.path.join(log_directory(self.crawler.settings), self.directory, self.name + '.log')
+        if self.crawler.settings.get('LOG_IN_FILES'):
+            create_file(self.log_file, 'w+', '')
 
     # ####################################################### #
     # ####################################################### #
