@@ -1,14 +1,11 @@
 """ Ratpy Log Stats Extension module """
 
-import os
-
 from twisted.internet import task
 
 from scrapy import signals
 from scrapy.exceptions import NotConfigured
 
 from ratpy.utils import Logger
-from ratpy.utils.path import log_directory
 
 # ############################################################### #
 # ############################################################### #
@@ -23,7 +20,9 @@ class LogStats(Logger):
 
     name = 'ratpy.extensions.logstats'
 
+    directory = 'extensions'
     crawler = None
+
     task = None
 
     interval = None
@@ -40,11 +39,10 @@ class LogStats(Logger):
             raise NotConfigured
 
         self.crawler = crawler
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.interval = interval
         self.multiplier = 60.0 / self.interval
-
-        Logger.__init__(self, self.crawler, log_dir=os.path.join(log_directory(self.crawler.settings), 'extensions'))
 
     @classmethod
     def from_crawler(cls, crawler):

@@ -33,6 +33,10 @@ LOG_LEVEL_IN_ONE_FILE = 'INFO'
 LOG_SHORT_NAMES = False
 LOG_STDOUT = False
 
+# MONITOR
+MONITOR_ENABLED = True
+MONITOR_DIR = './monitor/'
+
 # ############################################################### #
 # ############################################################### #
 

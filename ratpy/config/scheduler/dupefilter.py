@@ -19,10 +19,11 @@ class RatpyDupefilter(Logger):
 
     name = 'ratpy.dupefilter'
 
+    directory = 'scheduler'
     crawler = None
     spider = None
 
-    work_path = None
+    work_file = None
 
     fingerprints = None
 
@@ -32,9 +33,10 @@ class RatpyDupefilter(Logger):
 
         self.crawler = crawler
 
-        self.fingerprints = set()
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
-        Logger.__init__(self, self.crawler, log_dir=os.path.join(log_directory(crawler.settings), 'scheduler'))
+        self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, 'requests.fingerprints')
+        self.fingerprints = set()
 
         self.logger.debug('{:_<18} : OK'.format('Initialisation'))
 
@@ -49,11 +51,10 @@ class RatpyDupefilter(Logger):
 
         self.spider = spider
 
-        self.work_path = os.path.join(work_directory(self.crawler.settings), 'scheduler', 'requests.fingerprints')
-        if self.work_path and self.crawler.settings.get('WORK_ON_DISK', False):
-            create_file(self.work_path, 'w+', '')
+        if self.crawler.settings.get('WORK_ON_DISK', False):
+            create_file(self.work_file, 'w+', '')
 
-            with open(self.work_path, 'r+') as file:
+            with open(self.work_file, 'r+') as file:
                 self.fingerprints.update(x.rstrip() for x in file)
 
         self.logger.info('{:_<18} : OK   [{}] Requests : {}'.format('Open', self.spider.name, len(self)))
@@ -61,8 +62,8 @@ class RatpyDupefilter(Logger):
     def close(self, reason):
         self.logger.debug('{:_<18}'.format('Close'))
 
-        if self.work_path and self.crawler.settings.get('WORK_ON_DISK', False):
-            with open(self.work_path, 'w+') as file:
+        if self.crawler.settings.get('WORK_ON_DISK', False):
+            with open(self.work_file, 'w+') as file:
                 for fp in self.fingerprints:
                     file.write(fp + '\n')
 
@@ -76,7 +77,7 @@ class RatpyDupefilter(Logger):
     @property
     def infos(self):
         infos = super().infos
-        infos['work_path'] = self.work_path
+        infos['work_file'] = self.work_file
         infos['filtered'] = len(self)
         return infos
 

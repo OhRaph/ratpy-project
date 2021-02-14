@@ -4,7 +4,8 @@ import json
 import os
 import pandas
 
-from ratpy.utils import Logger, sizeof, create_file
+from ratpy.utils import Logger, sizeof
+from ratpy.utils.path import create_file, work_directory
 
 # ############################################################### #
 # ############################################################### #
@@ -21,29 +22,30 @@ class Index(Logger):
 
     name = 'index'
 
+    directory = None
     crawler = None
 
-    work_path = None
+    work_file = None
 
     _columns = None
     _index = None
 
     # ####################################################### #
 
-    def __init__(self, crawler, *args, name=None, work_dir=DEFAULT_DIR, log_dir=DEFAULT_DIR, columns=None, **kwargs):
+    def __init__(self, crawler, *args, name=None, directory=DEFAULT_DIR, columns=None, **kwargs):
 
         if name:
             self.name = name
-
+        self.directory = directory
         self.crawler = crawler
 
         self._columns = columns
         self._index = pandas.DataFrame([], columns=self._columns)
 
-        self.work_path = os.path.join(work_dir, self.name+'.csv')
-        create_file(self.work_path, 'w+', self._index.to_csv(index=False))
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
-        Logger.__init__(self, self.crawler, log_dir=log_dir)
+        self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, self.name+'.csv')
+        create_file(self.work_file, 'w+', self._index.to_csv(index=False))
 
         # self.logger.info('{:_<18} : OK   \'{}\''.format('Initialisation', self.work_path))
 
@@ -55,7 +57,7 @@ class Index(Logger):
     @property
     def infos(self):
         infos = super().infos
-        infos['work_path'] = self.work_path
+        infos['work_file'] = self.work_file
         infos['counts'] = self.counts
         return infos
 
@@ -63,18 +65,18 @@ class Index(Logger):
 
     def open(self):
         # self.logger.debug('{:_<18}'.format('Open'))
-        with open(self.work_path, 'r') as file:
+        with open(self.work_file, 'r') as file:
             self._index = pandas.read_csv(file)
             file.close()
-        self.logger.debug('{:_<18} : OK   \'{}\''.format('Open', self.work_path))
+        self.logger.debug('{:_<18} : OK   \'{}\''.format('Open', self.work_file))
 
     def close(self):
         # self.logger.debug('{:_<18}'.format('Close'))
         if self.crawler.settings.get('WORK_ON_DISK', False):
-            with open(self.work_path, 'w+') as file:
+            with open(self.work_file, 'w+') as file:
                 file.write(self._index.to_csv(index=False))
                 file.close()
-        self.logger.debug('{:_<18} : OK   \'{}\''.format('Close', self.work_path))
+        self.logger.debug('{:_<18} : OK   \'{}\''.format('Close', self.work_file))
 
     # ####################################################### #
     # ####################################################### #

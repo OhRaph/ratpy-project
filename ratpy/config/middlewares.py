@@ -1,9 +1,8 @@
 """ Ratpy Middlewares module """
 
-import os
 import scrapy
 
-from ratpy.utils import Logger, log_directory
+from ratpy.utils import Logger
 from ratpy import URL, Item
 
 from ratpy.http.request import Request, IgnoreRequest
@@ -22,8 +21,8 @@ class RatpyDownloaderMiddleware(Logger):
 
     name = 'ratpy.middleware.downloader'
 
+    directory = 'middlewares'
     crawler = None
-
     spiders = None
 
     # ####################################################### #
@@ -31,10 +30,8 @@ class RatpyDownloaderMiddleware(Logger):
     def __init__(self, crawler):
 
         self.crawler = crawler
-
         self.spiders = {}
-
-        Logger.__init__(self, self.crawler, log_dir=os.path.join(log_directory(crawler.settings), 'middlewares'))
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.logger.debug('{:_<18} : OK'.format('Initialisation'))
 
@@ -133,8 +130,8 @@ class RatpySpiderMiddleware(Logger):
 
     name = 'ratpy.middleware.spider'
 
+    directory = 'middlewares'
     crawler = None
-
     spiders = None
 
     # ####################################################### #
@@ -142,10 +139,8 @@ class RatpySpiderMiddleware(Logger):
     def __init__(self, crawler):
 
         self.crawler = crawler
-
         self.spiders = {}
-
-        Logger.__init__(self, self.crawler, log_dir=os.path.join(log_directory(crawler.settings), 'middlewares'))
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.logger.debug('{:_<18} : OK'.format('Initialisation'))
 

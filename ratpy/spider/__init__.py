@@ -4,7 +4,7 @@ import ast
 import os
 import scrapy
 
-from ratpy.utils import Utils, Attribute, work_directory, log_directory
+from ratpy.utils import Utils, Attribute
 from ratpy.utils.index import Index
 
 from ratpy.http.request import Request
@@ -28,11 +28,9 @@ class Spider(Utils, scrapy.Spider):
 
     name = 'ratpy.spider'
 
+    directory = None
     crawler = None
     custom_settings = None
-
-    work_dir = None
-    log_dir = None
 
     linker = True
 
@@ -48,19 +46,16 @@ class Spider(Utils, scrapy.Spider):
 
     def __init__(self, crawler, *args, start_url=None, start_requests=None, **kwargs):
 
+        self.directory = os.path.join('spiders', self.name)
         self.crawler = crawler
-
-        self.work_dir = os.path.join(work_directory(self.crawler.settings), 'spiders', self.name)
-        self.log_dir = os.path.join(log_directory(self.crawler.settings), 'spiders', self.name)
-
-        Utils.__init__(self, self.crawler, log_dir=self.log_dir)
+        Utils.__init__(self, self.crawler, directory=self.directory)
         scrapy.Spider.__init__(self, *args, **kwargs)
 
         self.linker = self.get_attribute('linker')
 
         self.subspiders = init_subspiders(self.get_attribute('subspiders_cls'), self, self.name, *args, **kwargs)
 
-        self._index_items = Index(self.crawler, work_dir=self.work_dir, log_dir=self.log_dir, name=self.name + '.items', columns=['url', 'value'])
+        self._index_items = Index(self.crawler, directory=self.directory, name=self.name+'.items', columns=['url', 'value'])
 
         if start_url:
             self._start_url = self._create_start_request(start_url, *args, **kwargs)

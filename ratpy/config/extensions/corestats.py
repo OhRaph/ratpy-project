@@ -1,14 +1,11 @@
 """ Ratpy Core Stats Extension module """
 
-import os
-
 from datetime import datetime
 
 from scrapy import signals
 from scrapy.exceptions import NotConfigured
 
 from ratpy.utils import Logger
-from ratpy.utils.path import log_directory
 
 # ############################################################### #
 # ############################################################### #
@@ -23,6 +20,7 @@ class CoreStats(Logger):
 
     name = 'ratpy.extensions.corestat'
 
+    directory = 'extensions'
     crawler = None
     
     time_begin = None
@@ -37,8 +35,7 @@ class CoreStats(Logger):
             raise NotConfigured
 
         self.crawler = crawler
-
-        Logger.__init__(self, self.crawler, log_dir=os.path.join(log_directory(self.crawler.settings), 'extensions'))
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
     @classmethod
     def from_crawler(cls, crawler):

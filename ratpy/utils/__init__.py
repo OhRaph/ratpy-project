@@ -19,8 +19,6 @@ __all__ = [
     'Logger',
     'Attribute', 'AttributeParams', 'AttributesSet', 'AttributesChecker',
     'Function', 'FunctionParams', 'FunctionsSet', 'FunctionsChecker',
-    'work_directory', 'log_directory', 'resources_directory',
-    'create_file',
     'sizeof', 'normalize', 'to_unicode', 'to_bytes', 'load_object', 'create_instance'
     ]
 

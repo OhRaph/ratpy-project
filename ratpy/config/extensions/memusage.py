@@ -1,6 +1,5 @@
 """ Ratpy Memory Usage Extension module """
 
-import os
 import pprint
 import resource
 import socket
@@ -14,7 +13,6 @@ from scrapy.mail import MailSender
 from scrapy.utils.engine import get_engine_status
 
 from ratpy.utils import Logger
-from ratpy.utils.path import log_directory
 
 # ############################################################### #
 # ############################################################### #
@@ -29,6 +27,7 @@ class MemoryUsage(Logger):
 
     name = 'ratpy.extensions.memusage'
 
+    directory = 'extensions'
     crawler = None
 
     warned = None
@@ -49,6 +48,7 @@ class MemoryUsage(Logger):
             raise NotConfigured
 
         self.crawler = crawler
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.warned = False
         self.warning = self.crawler.settings.getint('MEMORY_USAGE_WARNING_MB')*1024*1024
@@ -57,8 +57,6 @@ class MemoryUsage(Logger):
 
         self._mailing_list = self.crawler.settings.getlist('MEMORY_USAGE_NOTIFY_MAIL')
         self._mailer = MailSender.from_settings(self.crawler.settings)
-
-        Logger.__init__(self, self.crawler, log_dir=os.path.join(log_directory(self.crawler.settings), 'extensions'))
 
     @classmethod
     def from_crawler(cls, crawler):

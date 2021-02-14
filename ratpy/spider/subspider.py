@@ -52,17 +52,16 @@ class SubSpider(Utils):
 
     name = 'ratpy.subspider'
 
+    directory = None
+    spider = None
+
     enabled = True
     linker = True
     regex = ''
     interval = 0
 
-    spider = None
     subspiders_cls = {}
     subspiders = None
-
-    work_dir = None
-    log_dir = None
 
     _state = None
     _index_status = None
@@ -73,10 +72,8 @@ class SubSpider(Utils):
     def __init__(self, spider, *args, **kwargs):
         self.spider = spider
 
-        self.work_dir = os.path.join(self.spider.work_dir, 'subspiders', self.name)
-        self.log_dir = os.path.join(self.spider.log_dir, 'subspiders', self.name)
-
-        Utils.__init__(self, self.spider.crawler, *args, log_dir=self.log_dir, **kwargs)
+        self.directory = os.path.join(self.spider.directory, 'subspiders', self.name)
+        Utils.__init__(self, self.spider.crawler, *args, directory=self.directory, **kwargs)
 
         self.enabled = self.get_attribute('enabled')
         self.linker = self.get_attribute('linker')
@@ -91,8 +88,8 @@ class SubSpider(Utils):
         self.subspiders = self.subspiders.items()
 
         self._state = STOP if self.enabled else DISABLED
-        self._index_status = Index(self.spider.crawler, work_dir=self.work_dir, log_dir=self.log_dir, name=self.name + '.status', columns=['status', 'url', 'args', 'kwargs'])
-        self._index_items = Index(self.spider.crawler, work_dir=self.work_dir, log_dir=self.log_dir, name=self.name + '.items', columns=['url', 'pipeline'])
+        self._index_status = Index(self.spider.crawler, directory=self.directory, name=self.name + '.status', columns=['status', 'url', 'args', 'kwargs'])
+        self._index_items = Index(self.spider.crawler, directory=self.directory, name=self.name + '.items', columns=['url', 'pipeline'])
 
         self.logger.debug('{:_<18} : OK'.format('Initialisation'))
 

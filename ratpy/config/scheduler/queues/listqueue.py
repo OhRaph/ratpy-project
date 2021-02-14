@@ -17,18 +17,22 @@ class RatpyListQueue(Logger):
     # ####################################################### #
 
     name = 'ratpy.queue.list'
+
     priority = None
+    directory = None
+    crawler = None
 
     _list = None
     _total = None
 
     # ####################################################### #
 
-    def __init__(self, crawler, priority, work_dir, log_dir, *args, **kwargs):
+    def __init__(self, crawler, priority, directory, *args, **kwargs):
 
         self.priority = str(priority)
-
-        Logger.__init__(self, crawler, log_dir=os.path.join(log_dir, '['+self.priority+']'))
+        self.directory = os.path.join(directory, '['+self.priority+']')
+        self.crawler = crawler
+        Logger.__init__(self, self.crawler, dir=self.directory)
 
         self.logger.debug('{:_<18} : OK   [{}]'.format('Initialisation', self.priority))
 

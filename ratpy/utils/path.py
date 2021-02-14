@@ -3,7 +3,7 @@
 import os
 
 __all__ = [
-    'resources_directory', 'work_directory', 'log_directory',
+    'resources_directory', 'work_directory', 'log_directory', 'monitor_directory',
     'create_directory', 'create_file'
 ]
 
@@ -28,6 +28,10 @@ def work_directory(settings):
 
 def log_directory(settings):
     return _get_path_from_settings(settings, 'LOG_DIR')
+
+
+def monitor_directory(settings):
+    return _get_path_from_settings(settings, 'MONITOR_DIR')
 
 # ############################################################### #
 

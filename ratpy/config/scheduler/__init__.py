@@ -4,7 +4,7 @@ import os
 import json
 
 from ratpy.utils import Logger, load_object, create_instance
-from ratpy.utils.path import work_directory, log_directory, create_directory
+from ratpy.utils.path import work_directory, create_file
 
 from ratpy.http.url import URL
 from ratpy.http.request import Request, IgnoreRequest
@@ -13,7 +13,7 @@ from ratpy.http.request import Request, IgnoreRequest
 # ############################################################### #
 
 
-class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
+class RatpyScheduler(Logger):
 
     """ Ratpy Scheduler class """
 
@@ -22,11 +22,11 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
 
     name = 'ratpy.scheduler'
 
+    directory = 'scheduler'
     crawler = None
     spider = None
 
-    work_dir = None
-    log_dir = None
+    work_file = None
 
     dupefilter = None
 
@@ -44,13 +44,10 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
     def __init__(self, crawler, dupefilter, queues_classes=None):
 
         self.crawler = crawler
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
-        self.work_dir = os.path.join(work_directory(self.crawler.settings), 'scheduler')
-        self.log_dir = os.path.join(log_directory(self.crawler.settings), 'scheduler')
-
-        create_directory(self.work_dir)
-
-        Logger.__init__(self, self.crawler, log_dir=self.log_dir)
+        self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, 'requests.active.json')
+        create_file(self.work_file, 'w', '[]')
 
         self.dupefilter = dupefilter
 
@@ -79,6 +76,7 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
     @property
     def infos(self):
         infos = super().infos
+        infos['work_file'] = self.work_file
         infos['queues'] = {
             'memory': self.q_memory.infos if self.q_memory is not None else {},
             'disk': self.q_disk.infos if self.q_disk is not None else {}
@@ -110,11 +108,11 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
 
         self.dupefilter.close(reason)
 
-        if self.q_disk:
+        if self.q_disk is not None:
             state = self.q_disk.close()
             self._write_disk_queue_state(state)
 
-        if self.q_memory:
+        if self.q_memory is not None:
             self.q_memory.close()
 
         self.logger.info('{:_<18} : OK   [{}]'.format('Close', self.spider.name))
@@ -202,7 +200,7 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
     # ####################################################### #
 
     def _memory_queue(self):
-        return create_instance(self.q_priority_cls, settings=None, crawler=self.crawler, type='memory', queues_cls=self.q_memory_cls, work_dir='', log_dir=os.path.join(self.log_dir, 'queues'))
+        return create_instance(self.q_priority_cls, settings=None, crawler=self.crawler, type='memory', queues_cls=self.q_memory_cls, dir=os.path.join(self.directory, 'queues'))
 
     def _memory_queue_push(self, request):
         if self.q_memory is None:
@@ -223,7 +221,7 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
 
     def _disk_queue(self):
         state = self._read_disk_queue_state()
-        return create_instance(self.q_priority_cls, settings=None, crawler=self.crawler, type='disk', queues_cls=self.q_disk_cls, work_dir=os.path.join(self.work_dir, 'queues'), log_dir=os.path.join(self.log_dir, 'queues'), start_prios=state)
+        return create_instance(self.q_priority_cls, settings=None, crawler=self.crawler, type='disk', queues_cls=self.q_disk_cls, dir=os.path.join(self.directory, 'queues'), start_prios=state)
 
     def _disk_queue_push(self, request):
         if self.q_disk is None or not self.crawler.settings.get('WORK_ON_DISK', False):
@@ -243,14 +241,11 @@ class RatpyScheduler(Logger):  # pylint: disable=too-many-instance-attributes
     # ####################################################### #
 
     def _read_disk_queue_state(self):
-        path = os.path.join(self.work_dir, 'requests.active.json')
-        if not os.path.exists(path):
-            return ()
-        with open(path) as file:
+        with open(self.work_file) as file:
             return json.load(file)
 
     def _write_disk_queue_state(self, state):
-        with open(os.path.join(self.work_dir, 'requests.active.json'), 'w') as file:
+        with open(self.work_file, 'w') as file:
             json.dump(state, file)
 
     # ####################################################### #

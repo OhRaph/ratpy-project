@@ -7,7 +7,7 @@ from scrapy import signals
 from scrapy.exceptions import NotConfigured
 
 from ratpy.utils import Logger
-from ratpy.utils.path import work_directory, log_directory, create_directory, create_file
+from ratpy.utils.path import work_directory, create_file
 
 # ############################################################### #
 # ############################################################### #
@@ -22,10 +22,10 @@ class SpiderState(Logger):
 
     name = 'ratpy.extensions.spiderstate'
 
+    directory = 'extensions'
     crawler = None
 
-    work_dir = None
-    work_path = None
+    work_file = None
 
     # ####################################################### #
 
@@ -35,11 +35,7 @@ class SpiderState(Logger):
             raise NotConfigured
 
         self.crawler = crawler
-
-        self.work_dir = os.path.join(work_directory(self.crawler.settings), 'extensions', 'state')
-        create_directory(self.work_dir)
-
-        Logger.__init__(self, self.crawler, log_dir=os.path.join(log_directory(self.crawler.settings), 'extensions'))
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -54,9 +50,9 @@ class SpiderState(Logger):
         self.logger.debug('{:_<18}'.format('Open'))
 
         if self.crawler.settings.get('WORK_ON_DISK', False):
-            self.work_path = os.path.join(self.work_dir, spider.name+'.state')
-            create_file(self.work_path, 'w+', json.dumps({}, indent=4, sort_keys=True))
-            with open(self.work_path, 'r') as file:
+            self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, self.name, spider.name+'.state')
+            create_file(self.work_file, 'w+', json.dumps({}, indent=4, sort_keys=True))
+            with open(self.work_file, 'r') as file:
                 spider.state = json.loads(file.read())
 
         self.logger.info('{:_<18} : OK'.format('Open'))
@@ -65,7 +61,7 @@ class SpiderState(Logger):
         self.logger.debug('{:_<18}'.format('Close'))
 
         if self.crawler.settings.get('WORK_ON_DISK', False):
-            with open(self.work_path, 'w+') as file:
+            with open(self.work_file, 'w+') as file:
                 file.write(json.dumps(spider.state, indent=4, sort_keys=False))
                 file.close()
 

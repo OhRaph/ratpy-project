@@ -22,17 +22,17 @@ class Logger:
 
     crawler = None
 
-    log_path = None
+    log_file = None
     _logger = None
 
     # ####################################################### #
 
-    def __init__(self, crawler, *args, log_dir=DEFAULT_DIR, **kwargs):
+    def __init__(self, crawler, *args, directory=DEFAULT_DIR, **kwargs):
 
         self.crawler = crawler
 
-        self.log_path = os.path.join(log_dir, self.name+'.log')
-        create_file(self.log_path, 'w+', '')
+        self.log_file = os.path.join(log_directory(self.crawler.settings), directory, self.name+'.log')
+        create_file(self.log_file, 'w+', '')
 
     # ####################################################### #
     # ####################################################### #
@@ -55,7 +55,7 @@ class Logger:
                 self._logger.addHandler(handler)
 
             if self.crawler.settings.get('LOG_IN_FILES'):
-                handler = logging.FileHandler(self.log_path, encoding=self.crawler.settings.get('LOG_ENCODING'))
+                handler = logging.FileHandler(self.log_file, encoding=self.crawler.settings.get('LOG_ENCODING'))
                 handler.setFormatter(formatter)
                 handler.setLevel(self.crawler.settings.get('LOG_LEVEL_IN_FILES'))
                 self._logger.addHandler(handler)
@@ -76,7 +76,7 @@ class Logger:
             # 'id': id(self)
             'name': self.name,
             'class': self.__module__ + '.' + self.__class__.__name__,
-            'log_path': self.log_path
+            'log_file': self.log_file
             }
 
     # ####################################################### #

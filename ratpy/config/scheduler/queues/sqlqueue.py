@@ -6,7 +6,7 @@ import threading
 import time
 
 from ratpy.utils import Logger
-from ratpy.utils.path import create_directory
+from ratpy.utils.path import create_directory, work_directory
 
 # ############################################################### #
 # ############################################################### #
@@ -24,17 +24,12 @@ class RatpySQLQueue(Logger):
     # ####################################################### #
 
     name = 'ratpy.queue.sql'
+
     priority = None
+    directory = None
+    crawler = None
 
-    _TABLE_NAME = 'queue'
-    _SQL_CREATE = 'CREATE TABLE IF NOT EXISTS {table_name} (_id INTEGER PRIMARY KEY AUTOINCREMENT, data BLOB, timestamp FLOAT)'
-    _SQL_INSERT = 'INSERT INTO {table_name} (data, timestamp) VALUES (?, ?)'
-    _SQL_SELECT = 'SELECT _id, data FROM {table_name} WHERE timestamp < ? ORDER BY timestamp ASC LIMIT 1'
-    _SQL_DELETE = 'DELETE FROM {table_name} WHERE _id = ?'
-    _SQL_COUNT = 'SELECT COUNT(_id) FROM {table_name}'
-    _SQL_SELECT_OLDER_TIMESTAMP = 'SELECT timestamp FROM {table_name} ORDER BY timestamp ASC LIMIT 1'
-
-    work_path = None
+    work_file = None
 
     storage = 'DISK'
     timeout = None
@@ -49,20 +44,25 @@ class RatpySQLQueue(Logger):
     transaction_lock = None
     put_event = None
 
+    _TABLE_NAME = 'queue'
+    _SQL_CREATE = 'CREATE TABLE IF NOT EXISTS {table_name} (_id INTEGER PRIMARY KEY AUTOINCREMENT, data BLOB, timestamp FLOAT)'
+    _SQL_INSERT = 'INSERT INTO {table_name} (data, timestamp) VALUES (?, ?)'
+    _SQL_SELECT = 'SELECT _id, data FROM {table_name} WHERE timestamp < ? ORDER BY timestamp ASC LIMIT 1'
+    _SQL_DELETE = 'DELETE FROM {table_name} WHERE _id = ?'
+    _SQL_COUNT = 'SELECT COUNT(_id) FROM {table_name}'
+    _SQL_SELECT_OLDER_TIMESTAMP = 'SELECT timestamp FROM {table_name} ORDER BY timestamp ASC LIMIT 1'
+
     # ####################################################### #
 
-    def __init__(self, crawler, priority, work_dir, log_dir, *args, multithreading=True, timeout=10.0, **kwargs):
+    def __init__(self, crawler, priority, directory, *args, multithreading=True, timeout=10.0, **kwargs):
 
         self.priority = str(priority)
+        self.directory = os.path.join(directory, '['+self.priority+']')
+        self.crawler = crawler
+        Logger.__init__(self, crawler, dir=self.directory)
 
         self.multithreading = multithreading
         self.timeout = timeout
-
-        self.work_path = os.path.join(work_dir, '['+self.priority+']', self.name+'.db')
-        if self.storage == 'DISK':
-            create_directory(os.path.join(work_dir, '['+self.priority+']'))
-
-        Logger.__init__(self, crawler, log_dir=os.path.join(log_dir, '['+self.priority+']'))
 
         self.logger.debug('{:_<18} : OK   [{}]'.format('Initialisation', self.priority))
 
@@ -71,7 +71,7 @@ class RatpySQLQueue(Logger):
     @property
     def infos(self):
         infos = super().infos
-        infos['work_path'] = self.work_path
+        infos['work_file'] = self.work_file
         infos['size'] = len(self)
         return infos
 
@@ -83,7 +83,10 @@ class RatpySQLQueue(Logger):
             if self.storage == 'MEMORY':
                 conn = sqlite3.connect(':memory:', check_same_thread=not multithreading)
             else:
-                conn = sqlite3.connect(self.work_path, timeout=timeout, check_same_thread=not multithreading)
+                work_dir = os.path.join(work_directory(self.crawler.settings), self.directory)
+                create_directory(work_dir)
+                self.work_file = os.path.join(work_dir, self.name+'.db')
+                conn = sqlite3.connect(self.work_file, timeout=timeout, check_same_thread=not multithreading)
             conn.execute('PRAGMA journal_mode=WAL;')
             return conn
 

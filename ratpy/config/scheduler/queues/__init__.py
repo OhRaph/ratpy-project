@@ -101,11 +101,9 @@ class RatpyPriorityQueue(Logger):
 
     name = 'ratpy.queue.priority'
 
+    directory = None
     crawler = None
     spider = None
-
-    work_dir = None
-    log_dir = None
 
     queues_type = None
     queues_cls = None
@@ -114,25 +112,23 @@ class RatpyPriorityQueue(Logger):
 
     # ####################################################### #
 
-    def __init__(self, crawler, queues_type, queues_cls, work_dir, log_dir, start_prios=()):
+    def __init__(self, crawler, queues_type, queues_cls, directory, start_prios=()):
         self.name = self.name + '.' + queues_type
+        self.directory = os.path.join(directory, self.name)
         self.crawler = crawler
         self.spider = crawler.spider
+        Logger.__init__(self, self.crawler, directory=self.directory)
+
         self.queues_type = queues_type
         self.queues_cls = queues_cls
         self.queues = {}
         self.start_prios = start_prios
 
-        self.work_dir = os.path.join(work_dir, self.name)
-        self.log_dir = os.path.join(log_dir, self.name)
-
-        Logger.__init__(self, self.crawler, log_dir=self.log_dir)
-
         self.logger.debug('{:_<18} : OK'.format('Initialisation'))
 
     @classmethod
-    def from_crawler(cls, crawler, type, queues_cls, work_dir, log_dir, start_prios=()):
-        return cls(crawler, type, queues_cls, work_dir, log_dir, start_prios)
+    def from_crawler(cls, crawler, type, queues_cls, dir, start_prios=()):
+        return cls(crawler, type, queues_cls, dir, start_prios)
 
     # ####################################################### #
 
@@ -175,7 +171,7 @@ class RatpyPriorityQueue(Logger):
     # ####################################################### #
 
     def qfactory(self, priority):
-        return create_instance(self.queues_cls, None, self.crawler, priority, self.work_dir, self.log_dir)
+        return create_instance(self.queues_cls, None, self.crawler, priority, self.directory)
 
     def push(self, request):
         priority = -request.priority

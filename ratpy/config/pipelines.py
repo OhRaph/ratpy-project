@@ -18,8 +18,8 @@ class RatpyItemPipeline(Logger):
 
     name = 'ratpy.pipeline'
 
+    directory = 'pipelines'
     crawler = None
-
     spiders = None
 
     # ####################################################### #
@@ -27,10 +27,8 @@ class RatpyItemPipeline(Logger):
     def __init__(self, crawler):
 
         self.crawler = crawler
-
         self.spiders = {}
-
-        Logger.__init__(self, self.crawler, log_dir=os.path.join(log_directory(crawler.settings), 'middlewares'))
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
     @classmethod
     def from_crawler(cls, crawler):

@@ -22,10 +22,10 @@ class StatsCollector(Logger):
 
     name = 'ratpy.stats'
 
+    directory = 'stats'
     crawler = None
 
-    work_dir = None
-    work_path = None
+    work_file = None
 
     _dump = False
     _store = False
@@ -38,9 +38,7 @@ class StatsCollector(Logger):
     def __init__(self, crawler):
 
         self.crawler = crawler
-
-        self.work_dir = os.path.join(work_directory(crawler.settings), 'stats')
-        create_directory(self.work_dir)
+        Logger.__init__(self, self.crawler, directory=self.directory)
 
         self._dump = self.crawler.settings.getbool('STATS_DUMP')
         self._store = self.crawler.settings.getbool('STATS_STORE')
@@ -48,22 +46,21 @@ class StatsCollector(Logger):
         self._stats = {}
         self._previous_stats = {}
 
-        Logger.__init__(self, self.crawler, log_dir=log_directory(crawler.settings))
-
     # ####################################################### #
 
     def open_spider(self, spider):
+        self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, spider.name+'.stats')
+
         if self._store and self.crawler.settings.get('WORK_ON_DISK', False):
-            self.work_path = os.path.join(self.work_dir, spider.name+'.stats')
-            create_file(self.work_path, 'w+', json.dumps({}, indent=4, sort_keys=True))
-            with open(self.work_path, 'r') as file:
+            create_file(self.work_file, 'w+', json.dumps({}, indent=4, sort_keys=True))
+            with open(self.work_file, 'r') as file:
                 self._previous_stats = json.loads(file.read())
         if self._dump:
             self.logger.info("Dumping Ratpy stats:\n" + self._to_dump_stats(DUMP_BEGIN))
 
     def close_spider(self, spider, reason):
         if self._store and self.crawler.settings.get('WORK_ON_DISK', False):
-            with open(self.work_path, 'w+') as file:
+            with open(self.work_file, 'w+') as file:
                 file.write(json.dumps(self._to_store_stats(), indent=4, sort_keys=True, default=str))
         if self._dump:
             self.logger.info("Dumping Ratpy stats:\n" + self._to_dump_stats(DUMP_END))
