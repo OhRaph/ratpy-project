@@ -40,8 +40,8 @@ class Interval(int):
         self.cb_kwargs = kwargs
         return self
 
-    def __call__(self):
-        return Interval(self)
+    def __call__(self, value=0):
+        return Interval(self+value)
 
     def __str__(self):
         d = self / (24 * 60 * 60)
