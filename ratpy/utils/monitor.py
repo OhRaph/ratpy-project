@@ -107,7 +107,7 @@ def monitored(monitored_class):
             _del_store(self)
         else:
             if _monitored_init is not None:
-                _monitored_init(self, *args, **kwargs)
+                _monitored_init(self, crawler, *args, **kwargs)
 
     def __del__(self, *args, **kwargs):
 

@@ -34,7 +34,7 @@ LOG_SHORT_NAMES = False
 LOG_STDOUT = False
 
 # MONITOR
-MONITOR_ENABLED = True
+MONITOR_ENABLED = False
 MONITOR_DIR = './monitor/'
 
 # ############################################################### #
