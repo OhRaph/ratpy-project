@@ -113,7 +113,8 @@ def monitored(monitored_class):
 
         if self._monitor_crawler.settings.get('MONITOR_ENABLED'):
             if _monitored_del is not None:
-                _write(self, '__del__', *_add_decorator_x(self, _monitored_del)(*args, **kwargs))
+                x_del = _add_decorator_x(self, _monitored_del)(*args, **kwargs)
+                _write(self, '__del__', *x_del)
             _del_write(self)
         else:
             if _monitored_del is not None:
