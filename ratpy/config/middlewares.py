@@ -2,7 +2,7 @@
 
 import scrapy
 
-from ratpy.utils import Logger, Monitor
+from ratpy.utils import Logger, monitored
 from ratpy import URL, Item
 
 from ratpy.http.request import Request, IgnoreRequest
@@ -12,7 +12,8 @@ from ratpy.http.response import Response, IgnoreResponse
 # ############################################################### #
 
 
-class RatpyDownloaderMiddleware(Logger, Monitor):
+@monitored
+class RatpyDownloaderMiddleware(Logger):
 
     """ Ratpy Downloader Middleware class """
 
@@ -31,7 +32,6 @@ class RatpyDownloaderMiddleware(Logger, Monitor):
 
         self.crawler = crawler
         self.spiders = {}
-        Monitor.__init__(self, self.crawler, directory=self.directory)
         Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.logger.debug('{:_<18} : OK'.format('Initialisation'))
@@ -45,9 +45,8 @@ class RatpyDownloaderMiddleware(Logger, Monitor):
 
     # ####################################################### #
 
-    def open(self, spider):
+    def open(self, spider, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Open'))
-        Monitor.open(self)
 
         if spider.name not in self.spiders:
             self.spiders[spider.name] = spider
@@ -56,9 +55,8 @@ class RatpyDownloaderMiddleware(Logger, Monitor):
             self.logger.error('{:_<18} : FAIL !'.format('Open'))
             raise RuntimeError("%s middleware already running !" % spider.name)
 
-    def close(self, spider):
+    def close(self, spider, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Close'))
-        Monitor.close(self)
 
         if spider.name in self.spiders:
             del self.spiders[spider.name]
@@ -66,7 +64,6 @@ class RatpyDownloaderMiddleware(Logger, Monitor):
         else:
             self.logger.error('{:_<18} : FAIL !'.format('Close'))
             raise RuntimeError("%s middleware not running !" % spider.name)
-
 
     # ####################################################### #
 
@@ -125,6 +122,7 @@ class RatpyDownloaderMiddleware(Logger, Monitor):
 # ############################################################### #
 
 
+@monitored
 class RatpySpiderMiddleware(Logger):
 
     """ Ratpy Spider Middleware class """
@@ -157,7 +155,7 @@ class RatpySpiderMiddleware(Logger):
 
     # ####################################################### #
 
-    def open(self, spider):
+    def open(self, spider, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Open'))
 
         if spider.name not in self.spiders:
@@ -167,7 +165,7 @@ class RatpySpiderMiddleware(Logger):
             self.logger.error('{:_<18} : FAIL !'.format('Open'))
             raise RuntimeError("%s middleware already running !" % spider.name)
 
-    def close(self, spider):
+    def close(self, spider, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Close'))
 
         if spider.name in self.spiders:
@@ -205,8 +203,7 @@ class RatpySpiderMiddleware(Logger):
     def process_spider_exception(self, response, exception, spider):
         self.logger.debug('{:_<18} : OK   [{}] \'{}\''.format('Process Exception', exception, response.url))
 
-    @staticmethod
-    def process_start_requests(start_requests, spider):
+    def process_start_requests(self, start_requests, spider):
         yield from start_requests
 
     # ####################################################### #

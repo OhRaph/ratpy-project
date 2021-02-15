@@ -5,85 +5,59 @@ import time
 
 import inspect
 
-from ratpy.utils.path import monitor_directory, create_directory
+from ratpy.utils.path import monitor_directory, create_file
 
 # ############################################################### #
 # ############################################################### #
 
-DEFAULT_DIR = './'
+
+def add_decorator(obj, name, func):
+
+    def _execute(*args, **kwargs):
+        start = time.time()
+        res = func(obj, *args, **kwargs)
+        end = time.time()
+        obj._monitor_file.write('{},{},{},{},{}\n'.format(name, start, end, end - start, type(res)))
+        return res
+
+    return _execute
+
+# ############################################################### #
 
 
-def filter_function(name):
+def monitored(monitored_class):
 
-    if name.startswith('_'):
-        return False
-    if name in ['open', 'close', 'add_decorator']:
-        return False
-    return True
+    _monitored_init = monitored_class.__init__ if hasattr(monitored_class, '__init__') else None
+    _monitored_del = monitored_class.__del__ if hasattr(monitored_class, '__del__') else None
 
+    def __init__(self, crawler, *args, **kwargs):
 
-class Monitor:
-
-    """ Ratpy Monitor class """
-
-    # ####################################################### #
-    # ####################################################### #
-
-    name = 'ratpy.monitor'
-    directory = None
-
-    crawler = None
-
-    monitor_dir = None
-
-    monitored_functions = None
-
-    # ####################################################### #
-
-    def __init__(self, crawler, *args, directory=DEFAULT_DIR, **kwargs):
-
-        self.directory = directory
-        self.crawler = crawler
-
-        self.monitor_dir = os.path.join(monitor_directory(self.crawler.settings), self.directory, 'monitors')
-        if self.crawler.settings.get('MONITOR_ENABLED'):
-            create_directory(self.monitor_dir)
-
-        self.monitored_functions = {}
-
-    # ####################################################### #
-    # ####################################################### #
-
-    def open(self, *args, **kwargs):
+        if _monitored_init is not None:
+            _monitored_init(self, crawler, *args, **kwargs)
 
         if self.crawler.settings.get('MONITOR_ENABLED'):
-            for x in filter(lambda x: filter_function(x[0]), inspect.getmembers(self.__class__, predicate=inspect.isfunction)):
-                self.monitored_functions[x[0]] = open(os.path.join(self.monitor_dir, x[0]+'.csv'), 'w+')
-                setattr(self, x[0], self.add_decorator(x[1]))
 
-    def close(self, *args, **kwargs):
+            monitor_file = os.path.join(monitor_directory(self.crawler.settings), self.directory, self.name + '.monitor.csv')
+            create_file(monitor_file, 'w+', 'function,start,end,duration,output\n')
+            self._monitor_file = open(monitor_file, 'a+')
+
+            self.monitored_functions = {}
+            for x in filter(lambda x: not x[0].startswith('_'), inspect.getmembers(self.__class__, predicate=inspect.isfunction)):
+                setattr(self, x[0], add_decorator(self, x[0], x[1]))
+                self.monitored_functions[x[0]] = (x[1], getattr(self, x[0]))
+
+    def __del__(self, *args, **kwargs):
+
+        if _monitored_del is not None:
+            _monitored_del(self, *args, **kwargs)
 
         if self.crawler.settings.get('MONITOR_ENABLED'):
-            for function in self.monitored_functions:
-                self.monitored_functions[function].close()
+            self._monitor_file.close()
 
-    # ####################################################### #
-    # ####################################################### #
+    monitored_class.__init__ = __init__
+    monitored_class.__del__ = __del__
 
-    def add_decorator(self, func):
-
-        def _execute(*args, **kwargs):
-            start = time.time() * 1000
-            res = func(self, *args, **kwargs)
-            end = time.time() * 1000
-            # print('{: <45} | {: <20} | {}'.format(self.name, func.__name__, self.monitored_functions[func.__name__].name))
-            self.monitored_functions[func.__name__].write('{},{},{}\n'.format(start, end, end-start))
-            return res
-
-        return _execute
-
-    # ####################################################### #
-    # ####################################################### #
+    return monitored_class
 
 # ############################################################### #
 # ############################################################### #

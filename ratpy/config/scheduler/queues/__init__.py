@@ -6,7 +6,7 @@ import time
 
 from ratpy.config.scheduler.queues.listqueue import RatpyListQueue
 from ratpy.config.scheduler.queues.sqlqueue import RatpySQLQueue
-from ratpy.utils import create_instance, Logger, Monitor
+from ratpy.utils import create_instance, Logger, monitored
 from ratpy.http.request.serialize import request_to_dict, request_from_dict
 
 # ############################################################### #
@@ -92,7 +92,8 @@ RatpyDiskQueue = _ratpy_serialization_queue(RatpySQLQueue, _pickle_serialize, pi
 # ############################################################### #
 
 
-class RatpyPriorityQueue(Logger, Monitor):
+@monitored
+class RatpyPriorityQueue(Logger):
 
     """ Ratpy Priority Queue class """
 
@@ -117,7 +118,6 @@ class RatpyPriorityQueue(Logger, Monitor):
         self.directory = os.path.join(directory, self.name)
         self.crawler = crawler
         self.spider = crawler.spider
-        Monitor.__init__(self, self.crawler, directory=self.directory)
         Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.queues_type = queues_type
@@ -144,7 +144,6 @@ class RatpyPriorityQueue(Logger, Monitor):
 
     def open(self):
         self.logger.debug('{:_<18}'.format('Open'))
-        Monitor.open(self)
 
         for priority in self.start_prios:
             self.queues[priority] = self.qfactory(priority)
@@ -154,7 +153,6 @@ class RatpyPriorityQueue(Logger, Monitor):
 
     def close(self):
         self.logger.debug('{:_<18}'.format('Close'))
-        Monitor.close(self)
 
         active = []
 

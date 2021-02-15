@@ -2,13 +2,14 @@
 
 import scrapy
 
-from ratpy.utils import Logger, Monitor
+from ratpy.utils import Logger, monitored
 
 # ############################################################### #
 # ############################################################### #
 
 
-class RatpyItemPipeline(Logger, Monitor):
+@monitored
+class RatpyItemPipeline(Logger):
 
     """ Ratpy Item Pipeline class """
 
@@ -27,7 +28,6 @@ class RatpyItemPipeline(Logger, Monitor):
 
         self.crawler = crawler
         self.spiders = {}
-        Monitor.__init__(self, self.crawler, directory=self.directory)
         Logger.__init__(self, self.crawler, directory=self.directory)
 
     @classmethod
@@ -39,9 +39,8 @@ class RatpyItemPipeline(Logger, Monitor):
 
     # ####################################################### #
 
-    def open(self, spider):
+    def open(self, spider, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Open'))
-        Monitor.open(self)
 
         if spider.name not in self.spiders:
             self.spiders[spider.name] = spider
@@ -50,9 +49,8 @@ class RatpyItemPipeline(Logger, Monitor):
             self.logger.error('{:_<18} : FAIL !'.format('Open'))
             raise RuntimeError("%s pipeline already running !" % spider.name)
 
-    def close(self, spider):
+    def close(self, spider, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Close'))
-        Monitor.close(self)
 
         if spider.name in self.spiders:
             del self.spiders[spider.name]

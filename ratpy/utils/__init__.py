@@ -10,13 +10,13 @@ from pkgutil import iter_modules
 from ratpy.utils.checker.attributes import Attribute, AttributeParams, AttributesSet, AttributesChecker
 from ratpy.utils.checker.functions import Function, FunctionParams, FunctionsSet, FunctionsChecker
 from ratpy.utils.logger import Logger
-from ratpy.utils.monitor import Monitor
+from ratpy.utils.monitor import monitored
 
 from ratpy.utils.path import *
 
 __all__ = [
     'Utils',
-    'Logger', 'Monitor',
+    'Logger', 'monitored',
     'Attribute', 'AttributeParams', 'AttributesSet', 'AttributesChecker',
     'Function', 'FunctionParams', 'FunctionsSet', 'FunctionsChecker',
     'sizeof', 'normalize', 'to_unicode', 'to_bytes', 'load_object', 'create_instance'
@@ -26,12 +26,12 @@ __all__ = [
 # ############################################################### #
 
 
-class Utils(Monitor, AttributesChecker, FunctionsChecker):
+@monitored
+class Utils(AttributesChecker, FunctionsChecker):
 
     """ Ratpy Utils class """
 
     def __init__(self, *args, **kwargs):
-        Monitor.__init__(self, *args, **kwargs)
         AttributesChecker.__init__(self, *args, **kwargs)
         FunctionsChecker.__init__(self, *args, **kwargs)
 
@@ -43,10 +43,10 @@ class Utils(Monitor, AttributesChecker, FunctionsChecker):
         return infos
 
     def open(self, *args, **kwargs):
-        Monitor.open(self)
+        pass
 
     def close(self, *args, **kwargs):
-        Monitor.close(self)
+        pass
 
 # ############################################################### #
 # ############################################################### #

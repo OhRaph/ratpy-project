@@ -2,7 +2,7 @@
 
 import os
 
-from ratpy.utils import Logger, Monitor
+from ratpy.utils import Logger, monitored
 from ratpy.utils.path import work_directory, create_file
 from ratpy.http.request.fingerprint import request_fingerprint
 
@@ -10,7 +10,8 @@ from ratpy.http.request.fingerprint import request_fingerprint
 # ############################################################### #
 
 
-class RatpyDupefilter(Logger, Monitor):
+@monitored
+class RatpyDupefilter(Logger):
 
     """ Ratpy Dupefilter class """
 
@@ -33,8 +34,6 @@ class RatpyDupefilter(Logger, Monitor):
 
         self.directory = os.path.join(directory, 'dupefilter')
         self.crawler = crawler
-
-        Monitor.__init__(self, self.crawler, directory=self.directory)
         Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, 'requests.fingerprints')
@@ -48,9 +47,8 @@ class RatpyDupefilter(Logger, Monitor):
 
     # ####################################################### #
 
-    def open(self, spider):
+    def open(self, spider, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Open'))
-        Monitor.open(self)
 
         self.spider = spider
 
@@ -62,9 +60,8 @@ class RatpyDupefilter(Logger, Monitor):
 
         self.logger.info('{:_<18} : OK   [{}] Requests : {}'.format('Open', self.spider.name, len(self)))
 
-    def close(self, reason):
+    def close(self, reason, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Close'))
-        Monitor.close(self)
 
         if self.crawler.settings.get('WORK_ON_DISK', False):
             with open(self.work_file, 'w+') as file:

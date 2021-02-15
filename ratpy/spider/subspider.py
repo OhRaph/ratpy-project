@@ -148,7 +148,7 @@ class SubSpider(Utils):
 
     # ####################################################### #
 
-    def open(self):
+    def open(self, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Open'))
         Utils.open(self)
 
@@ -164,7 +164,7 @@ class SubSpider(Utils):
         else:
             self.logger.info('{:_<18} : NO   [{}]'.format('Open', 'DISABLED'))
 
-    def close(self):
+    def close(self, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Close'))
         Utils.close(self)
 

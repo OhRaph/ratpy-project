@@ -42,9 +42,12 @@ def create_directory(dirpath):
         os.makedirs(dirpath)
 
 
-def create_file(filepath, mode='w+', content=''):
+def create_file(filepath, mode='w+', content='', erase=False):
 
     create_directory(os.path.dirname(filepath))
+
+    if erase and os.path.exists(filepath):
+        os.remove(filepath)
 
     if not os.path.exists(filepath):
         with open(filepath, mode) as file:

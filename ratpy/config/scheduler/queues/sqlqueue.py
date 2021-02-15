@@ -5,7 +5,7 @@ import sqlite3
 import threading
 import time
 
-from ratpy.utils import Logger, Monitor
+from ratpy.utils import Logger, monitored
 from ratpy.utils.path import create_directory, work_directory
 
 # ############################################################### #
@@ -16,7 +16,8 @@ sqlite3.enable_callback_tracebacks(True)
 # ############################################################### #
 
 
-class RatpySQLQueue(Logger, Monitor):
+@monitored
+class RatpySQLQueue(Logger):
 
     """ Ratpy SQL Queue class """
 
@@ -59,7 +60,6 @@ class RatpySQLQueue(Logger, Monitor):
         self.priority = str(priority)
         self.directory = os.path.join(directory, '['+self.priority+']')
         self.crawler = crawler
-        Monitor.__init__(self, crawler, directory=self.directory)
         Logger.__init__(self, crawler, directory=self.directory)
 
         self.multithreading = multithreading
@@ -92,7 +92,6 @@ class RatpySQLQueue(Logger, Monitor):
             return conn
 
         self.logger.debug('{:_<18}        [{}]'.format('Open', self.priority))
-        Monitor.open(self)
 
         self._conn = open_connection(self.multithreading, self.timeout)
         self._conn.execute(self._sql_create())
@@ -116,7 +115,6 @@ class RatpySQLQueue(Logger, Monitor):
 
     def close(self):
         self.logger.debug('{:_<18}        [{}]'.format('Close', self.priority))
-        Monitor.close(self)
 
         self._getter.close()
         self._putter.close()

@@ -3,7 +3,7 @@
 import os
 import json
 
-from ratpy.utils import Logger, Monitor, load_object, create_instance
+from ratpy.utils import Logger, monitored, load_object, create_instance
 from ratpy.utils.path import work_directory, create_file
 
 from ratpy.http.url import URL
@@ -13,7 +13,8 @@ from ratpy.http.request import Request, IgnoreRequest
 # ############################################################### #
 
 
-class RatpyScheduler(Logger, Monitor):
+@monitored
+class RatpyScheduler(Logger):
 
     """ Ratpy Scheduler class """
 
@@ -44,11 +45,10 @@ class RatpyScheduler(Logger, Monitor):
     def __init__(self, crawler, dupefilter_class, queues_classes=None):
 
         self.crawler = crawler
-        Monitor.__init__(self, self.crawler, directory=self.directory)
         Logger.__init__(self, self.crawler, directory=self.directory)
 
         self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, 'requests.active.json')
-        create_file(self.work_file, 'w', '[]')
+        create_file(self.work_file, 'w+', '[]')
 
         self.dupefilter = create_instance(dupefilter_class, self.crawler.settings, self.crawler, self.directory)
 
@@ -86,9 +86,8 @@ class RatpyScheduler(Logger, Monitor):
 
     # ####################################################### #
 
-    def open(self, spider):
+    def open(self, spider, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Open'))
-        Monitor.open(self)
 
         self.spider = spider
 
@@ -104,9 +103,8 @@ class RatpyScheduler(Logger, Monitor):
 
         self.logger.info('{:_<18} : OK   [{}]'.format('Open', self.spider.name))
 
-    def close(self, reason):
+    def close(self, reason, *args, **kwargs):
         self.logger.debug('{:_<18}'.format('Close'))
-        Monitor.close(self)
 
         self.dupefilter.close(reason)
 
