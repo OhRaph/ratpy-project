@@ -8,7 +8,7 @@ import time
 
 from collections.abc import Iterable
 
-from ratpy.utils import Utils, Attribute, Function
+from ratpy.utils import Utils, Attribute, Function, monitored
 from ratpy.utils.index import Index
 from ratpy.http.request import Request, IgnoreRequest
 from ratpy.http.response import Response, IgnoreResponse
@@ -31,11 +31,11 @@ SUBSPIDERS_CLS_ERROR = 'Invalid type for attribute \'subspiders_cls\' : use clas
 START, STOP, DISABLED = object(), object(), object()
 
 
-def init_subspiders(subspiders_cls, spider, name, *args, **kwargs):
+def init_subspiders(subspiders_cls, crawler, spider, name, *args, **kwargs):
     if inspect.isclass(subspiders_cls):
-        subspiders = subspiders_cls.from_spider(spider, *args, **kwargs)
+        subspiders = subspiders_cls.from_spider(crawler, spider, *args, **kwargs)
     elif isinstance(subspiders_cls, dict):
-        subspiders = SubSpider.from_spider(spider, *args, name=name, subspiders_cls=subspiders_cls, **kwargs)
+        subspiders = SubSpider.from_spider(crawler, spider, *args, name=name, subspiders_cls=subspiders_cls, **kwargs)
     else:
         raise TypeError(SUBSPIDERS_CLS_ERROR)
     return subspiders
@@ -43,6 +43,7 @@ def init_subspiders(subspiders_cls, spider, name, *args, **kwargs):
 # ############################################################### #
 
 
+@monitored
 class SubSpider(Utils):
 
     """ Ratpy SubSpider class """
@@ -53,6 +54,7 @@ class SubSpider(Utils):
     name = 'ratpy.subspider'
 
     directory = None
+    crawler = None
     spider = None
 
     enabled = True
@@ -69,7 +71,8 @@ class SubSpider(Utils):
 
     # ####################################################### #
 
-    def __init__(self, spider, *args, **kwargs):
+    def __init__(self, crawler, spider, *args, **kwargs):
+        self.crawler = crawler
         self.spider = spider
 
         self.directory = os.path.join(self.spider.directory, 'subspiders', self.name)
@@ -84,7 +87,7 @@ class SubSpider(Utils):
 
         self.subspiders = {}
         for _name, _subspider_cls in self.get_attribute('subspiders_cls').items():
-            self.subspiders[_name] = init_subspiders(_subspider_cls, spider, self.name + '.' + _name, *args, **kwargs)
+            self.subspiders[_name] = init_subspiders(_subspider_cls, self.crawler, self.spider, self.name + '.' + _name, *args, **kwargs)
         self.subspiders = self.subspiders.items()
 
         self._state = STOP if self.enabled else DISABLED
@@ -94,8 +97,8 @@ class SubSpider(Utils):
         self.logger.debug('{:_<18} : OK'.format('Initialisation'))
 
     @classmethod
-    def from_spider(cls, spider, *args, **kwargs):
-        step = cls(spider, *args, **kwargs)
+    def from_spider(cls, crawler, spider, *args, **kwargs):
+        step = cls(crawler, spider, *args, **kwargs)
         step.spider.crawler.signals.connect(step.open, signal=scrapy.signals.spider_opened)
         step.spider.crawler.signals.connect(step.close, signal=scrapy.signals.spider_closed)
         return step

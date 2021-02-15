@@ -11,15 +11,65 @@ from ratpy.utils.path import monitor_directory, create_file
 # ############################################################### #
 
 
-def add_decorator(obj, name, func):
+def _save_crawler(obj, crawler):
+    obj._monitor_crawler = crawler
 
+
+def _save_original_functions(obj):
+    obj._monitor_original_functions = {}
+    for x in filter(lambda x: not x[0].startswith('_'), inspect.getmembers(obj.__class__, predicate=inspect.isfunction)):
+        obj._monitor_original_functions[x[0]] = x[1]
+
+# ############################################################### #
+
+
+def _add_decorator_x(obj, func):
     def _execute(*args, **kwargs):
-        start = time.time()
-        res = func(obj, *args, **kwargs)
-        end = time.time()
-        obj._monitor_file.write('{},{},{},{},{}\n'.format(name, start, end, end - start, type(res)))
-        return res
+        return time.time(), func(obj, *args, **kwargs), time.time()
+    return _execute
 
+# ############################################################### #
+
+
+def _init_store(obj):
+    obj._monitor_store = []
+
+    for name, func in obj._monitor_original_functions.items():
+        setattr(obj, name, _add_decorator_xs(obj, name, func))
+
+
+def _store(obj, name, start, res, end):
+    obj._monitor_store.append((name, start, res, end))
+
+
+def _add_decorator_xs(obj, name, func):
+    def _execute(*args, **kwargs):
+        start, res, end = _add_decorator_x(obj, func)(*args, **kwargs)
+        _store(obj, name, start, res, end)
+        return res
+    return _execute
+
+# ############################################################### #
+
+
+def _init_write(obj):
+    monitor_file = os.path.join(monitor_directory(obj.crawler.settings), obj.directory, obj.name + '.monitor.csv')
+    create_file(monitor_file, 'w+', 'function,start,end,duration,output\n')
+    obj._monitor_write = open(monitor_file, 'a+')
+
+    for name, func in obj._monitor_original_functions.items():
+        setattr(obj, name, _add_decorator_xw(obj, name, func))
+
+
+def _write(obj, name, start, res, end):
+    obj._monitor_write.write('{},{},{},{},{}\n'.format(name, start, end, end - start, type(res)))
+
+
+def _add_decorator_xw(obj, name, func):
+    def _execute(*args, **kwargs):
+        start, res, end = _add_decorator_x(obj, func)(*args, **kwargs)
+        _write(obj, name, start, res, end)
+        return res
     return _execute
 
 # ############################################################### #
@@ -32,27 +82,33 @@ def monitored(monitored_class):
 
     def __init__(self, crawler, *args, **kwargs):
 
-        if _monitored_init is not None:
-            _monitored_init(self, crawler, *args, **kwargs)
+        _save_crawler(self, crawler)
 
-        if self.crawler.settings.get('MONITOR_ENABLED'):
+        if self._monitor_crawler.settings.get('MONITOR_ENABLED'):
+            _save_original_functions(self)
+            _init_store(self)
 
-            monitor_file = os.path.join(monitor_directory(self.crawler.settings), self.directory, self.name + '.monitor.csv')
-            create_file(monitor_file, 'w+', 'function,start,end,duration,output\n')
-            self._monitor_file = open(monitor_file, 'a+')
+            if _monitored_init is not None:
+                x_init = _add_decorator_x(self, _monitored_init)(crawler, *args, **kwargs)
+                _init_write(self)
 
-            self.monitored_functions = {}
-            for x in filter(lambda x: not x[0].startswith('_'), inspect.getmembers(self.__class__, predicate=inspect.isfunction)):
-                setattr(self, x[0], add_decorator(self, x[0], x[1]))
-                self.monitored_functions[x[0]] = (x[1], getattr(self, x[0]))
+                [_write(self, *s_func) for s_func in self._monitor_store]
+                _write(self, '__init__', *x_init)
+            else:
+                _init_write(self)
+        else:
+            if _monitored_init is not None:
+                _monitored_init(self, *args, **kwargs)
 
     def __del__(self, *args, **kwargs):
 
-        if _monitored_del is not None:
-            _monitored_del(self, *args, **kwargs)
-
-        if self.crawler.settings.get('MONITOR_ENABLED'):
-            self._monitor_file.close()
+        if self._monitor_crawler.settings.get('MONITOR_ENABLED'):
+            if _monitored_del is not None:
+                _write(self, '__del__', *_add_decorator_x(self, _monitored_del)(*args, **kwargs))
+            self._monitor_write.close()
+        else:
+            if _monitored_del is not None:
+                _monitored_del(self, *args, **kwargs)
 
     monitored_class.__init__ = __init__
     monitored_class.__del__ = __del__

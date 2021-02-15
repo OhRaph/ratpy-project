@@ -4,7 +4,7 @@ import ast
 import os
 import scrapy
 
-from ratpy.utils import Utils, Attribute
+from ratpy.utils import Utils, Attribute, monitored
 from ratpy.utils.index import Index
 
 from ratpy.http.request import Request
@@ -19,6 +19,7 @@ __all__ = ['Spider', 'SubSpider']
 # ############################################################### #
 
 
+@monitored
 class Spider(Utils, scrapy.Spider):
 
     """ Ratpy Spider class """
@@ -53,7 +54,7 @@ class Spider(Utils, scrapy.Spider):
 
         self.linker = self.get_attribute('linker')
 
-        self.subspiders = init_subspiders(self.get_attribute('subspiders_cls'), self, self.name, *args, **kwargs)
+        self.subspiders = init_subspiders(self.get_attribute('subspiders_cls'), self.crawler, self, self.name, *args, **kwargs)
 
         self._index_items = Index(self.crawler, directory=self.directory, name=self.name+'.items', columns=['url', 'value'])
 
@@ -63,6 +64,9 @@ class Spider(Utils, scrapy.Spider):
             self._start_requests = start_requests
 
         self.logger.info('{:_<18} : OK   COMMAND = {}'.format('Initialisation', self.crawler.settings['COMMAND']))
+
+    def __del__(self):
+        return
 
     @classmethod
     def from_crawler(cls, crawler, *args, **kwargs):

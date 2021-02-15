@@ -26,7 +26,6 @@ __all__ = [
 # ############################################################### #
 
 
-@monitored
 class Utils(AttributesChecker, FunctionsChecker):
 
     """ Ratpy Utils class """

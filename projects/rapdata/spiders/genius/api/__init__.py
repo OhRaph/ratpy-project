@@ -28,15 +28,15 @@ class GeniusAPI(ratpy.SubSpider):
     linker = True
     enabled = True
 
-    def __init__(self, spider, *args, **kwargs):
+    def __init__(self, crawler, *args, **kwargs):
         self.subspiders_cls = {
             'artist': GeniusAPIArtist,
             'album': GeniusAPIAlbum,
             'song': GeniusAPISong,
             'annotation': GeniusAPIAnnotation
         }
-        self.token = read_token(spider.crawler.settings)
-        ratpy.SubSpider.__init__(self, spider, *args, **kwargs)
+        self.token = read_token(crawler.settings)
+        ratpy.SubSpider.__init__(self, crawler, *args, **kwargs)
 
     def start_links(self):
         yield ratpy.URL('https://api.genius.com/artists/1282')
