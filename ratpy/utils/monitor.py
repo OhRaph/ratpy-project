@@ -38,6 +38,10 @@ def _init_store(obj):
         setattr(obj, name, _add_decorator_xs(obj, name, func))
 
 
+def _del_store(obj):
+    obj._monitor_store = None
+
+
 def _store(obj, name, start, res, end):
     obj._monitor_store.append((name, start, res, end))
 
@@ -54,15 +58,19 @@ def _add_decorator_xs(obj, name, func):
 
 def _init_write(obj):
     monitor_file = os.path.join(monitor_directory(obj.crawler.settings), obj.directory, obj.name + '.monitor.csv')
-    create_file(monitor_file, 'w+', 'function,start,end,duration,output\n')
+    create_file(monitor_file, 'w+', 'id,function,start,end,duration,output\n')
     obj._monitor_write = open(monitor_file, 'a+')
 
     for name, func in obj._monitor_original_functions.items():
         setattr(obj, name, _add_decorator_xw(obj, name, func))
 
 
+def _del_write(obj):
+    obj._monitor_write.close()
+
+
 def _write(obj, name, start, res, end):
-    obj._monitor_write.write('{},{},{},{},{}\n'.format(name, start, end, end - start, type(res)))
+    obj._monitor_write.write('{},{},{},{},{},{}\n'.format(id(obj), name, start, end, end - start, type(res)))
 
 
 def _add_decorator_xw(obj, name, func):
@@ -91,11 +99,12 @@ def monitored(monitored_class):
             if _monitored_init is not None:
                 x_init = _add_decorator_x(self, _monitored_init)(crawler, *args, **kwargs)
                 _init_write(self)
-
-                [_write(self, *s_func) for s_func in self._monitor_store]
                 _write(self, '__init__', *x_init)
             else:
                 _init_write(self)
+
+            [_write(self, *s_func) for s_func in self._monitor_store]
+            _del_store(self)
         else:
             if _monitored_init is not None:
                 _monitored_init(self, *args, **kwargs)
@@ -105,7 +114,7 @@ def monitored(monitored_class):
         if self._monitor_crawler.settings.get('MONITOR_ENABLED'):
             if _monitored_del is not None:
                 _write(self, '__del__', *_add_decorator_x(self, _monitored_del)(*args, **kwargs))
-            self._monitor_write.close()
+            _del_write(self)
         else:
             if _monitored_del is not None:
                 _monitored_del(self, *args, **kwargs)
