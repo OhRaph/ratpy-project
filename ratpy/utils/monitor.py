@@ -11,83 +11,83 @@ from ratpy.utils.path import monitor_directory, create_file
 # ############################################################### #
 
 
-def _save_crawler(obj, crawler):
-    obj._monitor_crawler = crawler
+def _save_crawler(self, crawler):
+    self._monitor_crawler = crawler
 
 
-def _save_original_functions(obj):
-    obj._monitor_original_functions = {}
-    for x in filter(lambda x: not x[0].startswith('_'), inspect.getmembers(obj.__class__, predicate=inspect.isfunction)):
-        obj._monitor_original_functions[x[0]] = x[1]
+def _save_original_functions(self):
+    self._monitor_original_functions = {}
+    for x in filter(lambda _x: not _x[0].startswith('_'), inspect.getmembers(self.__class__, predicate=inspect.isfunction)):
+        self._monitor_original_functions[x[0]] = x[1]
 
 # ############################################################### #
 
 
-def _add_decorator_x(obj, func):
+def _add_decorator_x(self, func):
     def _execute(*args, **kwargs):
-        return time.time(), func(obj, *args, **kwargs), time.time()
+        return time.time(), func(self, *args, **kwargs), time.time()
     return _execute
 
 # ############################################################### #
 
 
-def _init_store(obj):
-    obj._monitor_store = []
+def _init_store(self):
+    self._monitor_store = []
 
-    for name, func in obj._monitor_original_functions.items():
-        setattr(obj, name, _add_decorator_xs(obj, name, func))
+    for name, func in self._monitor_original_functions.items():
+        setattr(self, name, _add_decorator_xs(self, name, func))
 
 
 def _del_store(obj):
     obj._monitor_store = None
 
 
-def _store(obj, name, start, res, end):
-    obj._monitor_store.append((name, start, res, end))
+def _store(self, name, start, res, end):
+    self._monitor_store.append((name, start, res, end))
 
 
-def _add_decorator_xs(obj, name, func):
+def _add_decorator_xs(self, name, func):
     def _execute(*args, **kwargs):
-        start, res, end = _add_decorator_x(obj, func)(*args, **kwargs)
-        _store(obj, name, start, res, end)
+        start, res, end = _add_decorator_x(self, func)(*args, **kwargs)
+        _store(self, name, start, res, end)
         return res
     return _execute
 
 # ############################################################### #
 
 
-def _init_write(obj):
-    monitor_dir = os.path.join(monitor_directory(obj._monitor_crawler.settings), getattr(obj, 'directory', ''))
-    monitor_file = os.path.join(monitor_dir, getattr(obj, 'name', obj.__class__.__name__) + '.monitor.csv')
+def _init_write(self):
+    monitor_dir = os.path.join(monitor_directory(self._monitor_crawler.settings), getattr(self, 'directory', ''))
+    monitor_file = os.path.join(monitor_dir, getattr(self, 'name', self.__class__.__name__) + '.monitor.csv')
     create_file(monitor_file, 'w+', 'id,function,start,end,duration,output\n')
-    obj._monitor_write = open(monitor_file, 'a+')
+    self._monitor_write = open(monitor_file, 'a+')
 
-    for name, func in obj._monitor_original_functions.items():
-        setattr(obj, name, _add_decorator_xw(obj, name, func))
-
-
-def _del_write(obj):
-    obj._monitor_write.close()
+    for name, func in self._monitor_original_functions.items():
+        setattr(self, name, _add_decorator_xw(self, name, func))
 
 
-def _write(obj, name, start, res, end):
-    obj._monitor_write.write('{},{},{},{},{},{}\n'.format(id(obj), name, start, end, end - start, type(res)))
+def _del_write(self):
+    self._monitor_write.close()
 
 
-def _add_decorator_xw(obj, name, func):
+def _write(self, name, start, res, end):
+    self._monitor_write.write('{},{},{},{},{},{}\n'.format(id(self), name, start, end, end - start, type(res)))
+
+
+def _add_decorator_xw(self, name, func):
     def _execute(*args, **kwargs):
-        start, res, end = _add_decorator_x(obj, func)(*args, **kwargs)
-        _write(obj, name, start, res, end)
+        start, res, end = _add_decorator_x(self, func)(*args, **kwargs)
+        _write(self, name, start, res, end)
         return res
     return _execute
 
 # ############################################################### #
 
 
-def monitored(monitored_class):
+def monitored(cls):
 
-    _monitored_init = monitored_class.__init__ if hasattr(monitored_class, '__init__') else None
-    _monitored_del = monitored_class.__del__ if hasattr(monitored_class, '__del__') else None
+    _monitored_init = cls.__init__ if hasattr(cls, '__init__') else None
+    _monitored_del = cls.__del__ if hasattr(cls, '__del__') else None
 
     def __init__(self, crawler, *args, **kwargs):
 
@@ -121,10 +121,10 @@ def monitored(monitored_class):
             if _monitored_del is not None:
                 _monitored_del(self, *args, **kwargs)
 
-    monitored_class.__init__ = __init__
-    monitored_class.__del__ = __del__
+    cls.__init__ = __init__
+    cls.__del__ = __del__
 
-    return monitored_class
+    return cls
 
 # ############################################################### #
 # ############################################################### #
