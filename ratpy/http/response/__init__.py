@@ -2,7 +2,7 @@
 
 import scrapy
 
-__all__ = ['Response', 'IgnoreResponse', 'PostponeResponse']
+__all__ = ['Response', 'IgnoreResponse']
 
 # ############################################################### #
 # ############################################################### #
@@ -11,13 +11,6 @@ __all__ = ['Response', 'IgnoreResponse', 'PostponeResponse']
 class IgnoreResponse(scrapy.exceptions.IgnoreRequest):
 
     """ Ratpy Ignore Response class """
-
-# ############################################################### #
-
-
-class PostponeResponse(scrapy.exceptions.IgnoreRequest):
-
-    """ Ratpy Postpone Response class """
 
 # ############################################################### #
 

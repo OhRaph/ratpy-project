@@ -32,6 +32,9 @@ class Artist(ratpy.Item):
     verified = ratpy.Field()
     picture = ratpy.Field()
 
+    image_urls = ratpy.Field()
+    images = ratpy.Field()
+
 # ############################################################### #
 
 

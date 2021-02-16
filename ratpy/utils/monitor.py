@@ -57,7 +57,8 @@ def _add_decorator_xs(obj, name, func):
 
 
 def _init_write(obj):
-    monitor_file = os.path.join(monitor_directory(obj.crawler.settings), obj.directory, obj.name + '.monitor.csv')
+    monitor_dir = os.path.join(monitor_directory(obj._monitor_crawler.settings), getattr(obj, 'directory', ''))
+    monitor_file = os.path.join(monitor_dir, getattr(obj, 'name', obj.__class__.__name__) + '.monitor.csv')
     create_file(monitor_file, 'w+', 'id,function,start,end,duration,output\n')
     obj._monitor_write = open(monitor_file, 'a+')
 

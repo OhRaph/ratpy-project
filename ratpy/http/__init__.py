@@ -1,9 +1,9 @@
 """ Ratpy HTTP module """
 
-from ratpy.http.request import Request, IgnoreRequest, PostponeRequest
-from ratpy.http.response import Response, IgnoreResponse, PostponeResponse
+from ratpy.http.request import Request, IgnoreRequest
+from ratpy.http.response import Response, IgnoreResponse
 
 __all__ = [
-    'Request', 'IgnoreRequest', 'PostponeRequest',
-    'Response', 'IgnoreResponse', 'PostponeResponse'
+    'Request', 'IgnoreRequest',
+    'Response', 'IgnoreResponse'
     ]

@@ -62,6 +62,7 @@ class RatpyItemPipeline(Logger):
     # ####################################################### #
 
     def process_item(self, item, spider):
+        self.logger.info('{:_<18} : OK   [{}]'.format('Process Item', item['pipeline']))
         return item
 
     # ####################################################### #

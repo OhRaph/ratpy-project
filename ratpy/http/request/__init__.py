@@ -17,11 +17,6 @@ class IgnoreRequest(scrapy.exceptions.IgnoreRequest):
 
     """ Ratpy Ignore Request class """
 
-
-class PostponeRequest(Exception):
-
-    """ Ratpy Postpone Request class """
-
 # ############################################################### #
 
 

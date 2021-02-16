@@ -11,16 +11,17 @@ from ratpy.link import Link, Linker
 from ratpy.item import Item
 from ratpy.field import Field
 from ratpy.interval import Interval
-from ratpy.utils import normalize, resources_directory, work_directory, log_directory
+from ratpy.utils import normalize
+from ratpy.utils.path import resources_directory, work_directory, log_directory
 
 from ratpy.http.url import URL
-from ratpy.http.request import Request, IgnoreRequest, PostponeRequest
-from ratpy.http.response import Response, IgnoreResponse, PostponeResponse
+from ratpy.http.request import Request, IgnoreRequest
+from ratpy.http.response import Response, IgnoreResponse
 
 __all__ = [
     'Spider', 'SubSpider', 'Link', 'Linker', 'URL', 'Item', 'Field', 'Interval',
-    'Request', 'IgnoreRequest', 'PostponeRequest',
-    'Response', 'IgnoreResponse', 'PostponeResponse',
+    'Request', 'IgnoreRequest',
+    'Response', 'IgnoreResponse',
     'normalize'
     ]
 

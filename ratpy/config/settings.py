@@ -1,9 +1,6 @@
 """ Ratpy Settings module """
 
-# You can pass a specific setting using comand line : -s SETTING_NAME="setting_value"
-
-import os
-# import datetime  # pylint: disable=unused-import
+# import datetime
 
 # ############################################################### #
 # ############################################################### #
@@ -108,7 +105,9 @@ MAIL_USER = None
 ITEM_PIPELINES = {
     'ratpy.config.pipelines.RatpyItemPipeline': 94
     }
-ITEM_PIPELINES_BASE = {}
+ITEM_PIPELINES_BASE = {
+    'scrapy.pipelines.images.ImagesPipeline': 1
+    }
 ITEM_PROCESSOR = 'scrapy.pipelines.ItemPipelineManager'
 FEED_STORAGE_FTP_ACTIVE = False
 FEED_STORAGE_S3_ACL = ''
@@ -116,6 +115,7 @@ FILES_STORE_S3_ACL = 'private'
 FILES_STORE_GCS_ACL = ''
 IMAGES_STORE_S3_ACL = 'private'
 IMAGES_STORE_GCS_ACL = ''
+IMAGES_STORE = WORK_DIR+'/pipelines/images/'
 
 # RESOLVER
 DNSCACHE_ENABLED = True

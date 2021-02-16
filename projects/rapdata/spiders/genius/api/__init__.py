@@ -110,7 +110,8 @@ class GeniusAPIArtist(ratpy.SubSpider):
                 )
             ),
             verified=_x['is_verified'],
-            picture=_x['image_url']
+            picture=_x['image_url'],
+            image_urls=[_x['image_url']]
         )
         yield from _parser.links
 
