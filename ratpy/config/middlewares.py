@@ -34,7 +34,7 @@ class RatpyDownloaderMiddleware(Logger):
         self.spiders = {}
         Logger.__init__(self, self.crawler, directory=self.directory)
 
-        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
+        self.logger.debug(action='Initialisation', status='OK')
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -46,32 +46,33 @@ class RatpyDownloaderMiddleware(Logger):
     # ####################################################### #
 
     def open(self, spider, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
 
         if spider.name not in self.spiders:
             self.spiders[spider.name] = spider
-            self.logger.info('{:_<18} : OK   [{}]'.format('Open', spider.name))
+            self.logger.info(action='Open', status='OK', message='[{}]'.format(spider.name))
         else:
-            self.logger.error('{:_<18} : FAIL !'.format('Open'))
-            raise RuntimeError("%s middleware already running !" % spider.name)
+            self.logger.error(action='Open', status='FAIL', message='[{}]'.format(spider.name))
+            raise RuntimeError("{} middleware already running !".format(spider.name))
 
     def close(self, spider, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
 
         if spider.name in self.spiders:
             del self.spiders[spider.name]
-            self.logger.info('{:_<18} : OK   [{}]'.format('Close', spider.name))
+            self.logger.info(action='Close', status='OK', message='[{}]'.format(spider.name))
         else:
-            self.logger.error('{:_<18} : FAIL !'.format('Close'))
-            raise RuntimeError("%s middleware not running !" % spider.name)
+            self.logger.error(action='Close', status='FAIL', message='[{}]'.format(spider.name))
+            raise RuntimeError("{} middleware not running !".format(spider.name))
 
     # ####################################################### #
 
     def process_request(self, request, spider):
-        self.logger.debug('{:_<18} :      \'{}\''.format('Process Request', request.url))
+        self.logger.debug(action='Process Request', message='{}'.format(request.url))
 
         if spider.name not in self.spiders:
-            raise RuntimeError("%s middleware not running !" % spider.name)
+            self.logger.error(action='Process Request', status='FAIL', message='[{}]'.format(spider.name))
+            raise RuntimeError('{} middleware not running !'.format(spider.name))
         request.__class__ = Request
 
         url = URL(request.url)
@@ -80,22 +81,23 @@ class RatpyDownloaderMiddleware(Logger):
             if request is None:
                 raise IgnoreRequest
         except IgnoreRequest:
-            self.logger.debug('{:_<18} : DROP \'{}\''.format('Process Request', request.url))
+            self.logger.debug(action='Process Request', status='DROP', message='{}'.format(request.url))
             raise scrapy.exceptions.IgnoreRequest
         else:
             if url == URL(request.url):
-                self.logger.debug('{:_<18} : OK   \'{}\''.format('Process Request', request.url))
+                self.logger.debug(action='Process Request', status='OK', message='{}'.format(request.url))
                 request = None
             else:
-                self.logger.debug('{:_<18} : OK   \'{}\' --> \'{}\''.format('Process Request', url, request.url))
+                self.logger.debug(action='Process Request', status='DROP', message='{} --> {}'.format(url, request.url))
 
         return request
 
     def process_response(self, request, response, spider):
-        self.logger.debug('{:_<18} :      \'{}\''.format('Process Response', request.url))
+        self.logger.debug(action='Process Response', message='{}'.format(request.url))
 
         if spider.name not in self.spiders:
-            raise RuntimeError("%s middleware not running !" % spider.name)
+            self.logger.error(action='Process Response', status='FAIL', message='[{}]'.format(spider.name))
+            raise RuntimeError('{} middleware not running !'.format(spider.name))
         request.__class__ = Request
         response.__class__ = Response
 
@@ -105,15 +107,15 @@ class RatpyDownloaderMiddleware(Logger):
             if response is None:
                 raise IgnoreResponse
         except IgnoreResponse:
-            self.logger.debug('{:_<18} : DROP \'{}\''.format('Process Response', request.url))
+            self.logger.debug(action='Process Response', status='DROP', message='{}'.format(request.url))
             raise scrapy.exceptions.IgnoreRequest
         else:
-            self.logger.debug('{:_<18} : OK   \'{}\''.format('Process Response', request.url))
+            self.logger.debug(action='Process Response', status='OK', message='{}'.format(request.url))
 
         return response
 
     def process_exception(self, request, exception, spider):
-        self.logger.debug('{:_<18} : OK   [{}] \'{}\''.format('Process Exception', exception, request.url))
+        self.logger.debug(action='Process Exception', status='OK', message='[{}] {}'.format(exception, request.url))
 
     # ####################################################### #
     # ####################################################### #
@@ -144,7 +146,7 @@ class RatpySpiderMiddleware(Logger):
         self.spiders = {}
         Logger.__init__(self, self.crawler, directory=self.directory)
 
-        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
+        self.logger.debug(action='Initialisation')
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -156,52 +158,54 @@ class RatpySpiderMiddleware(Logger):
     # ####################################################### #
 
     def open(self, spider, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
 
         if spider.name not in self.spiders:
             self.spiders[spider.name] = spider
-            self.logger.info('{:_<18} : OK   [{}]'.format('Open', spider.name))
+            self.logger.info(action='Open', status='OK', message='[{}]'.format(spider.name))
         else:
-            self.logger.error('{:_<18} : FAIL !'.format('Open'))
-            raise RuntimeError("%s middleware already running !" % spider.name)
+            self.logger.error(action='Open', status='FAIL', message='[{}]'.format(spider.name))
+            raise RuntimeError('{} middleware already running !'.format(spider.name))
 
     def close(self, spider, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
 
         if spider.name in self.spiders:
             del self.spiders[spider.name]
-            self.logger.info('{:_<18} : OK   [{}]'.format('Close', spider.name))
+            self.logger.info(action='Close', status='OK', message='[{}]'.format(spider.name))
         else:
-            self.logger.error('{:_<18} : FAIL !'.format('Close'))
-            raise RuntimeError("%s middleware not running !" % spider.name)
+            self.logger.error(action='Close', status='FAIL', message='[{}]'.format(spider.name))
+            raise RuntimeError('{} middleware not running !'.format(spider.name))
 
     # ####################################################### #
 
     def process_spider_input(self, response, spider):
 
         if spider.name not in self.spiders:
-            raise RuntimeError("%s middleware not running !" % spider.name)
+            self.logger.error(action='Process Input', status='FAIL', message='[{}]'.format(spider.name))
+            raise RuntimeError("{} middleware not running !".format(spider.name))
 
         spider.crawler.stats.inc_value(spider.name + '/inputs')
-        self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Process Input', 'Response', response.url))
+        self.logger.debug(action='Process Input', status='OK', message='[{: <8}] {}'.format('Response', response.url))
 
     def process_spider_output(self, response, result, spider):
 
         if spider.name not in self.spiders:
-            raise RuntimeError("%s middleware not running !" % spider.name)
+            self.logger.error(action='Process Output', status='FAIL', message='[{}]'.format(spider.name))
+            raise RuntimeError("{} middleware not running !".format(spider.name))
 
         for hit in result:
             spider.crawler.stats.inc_value(spider.name + '/outputs')
             if isinstance(hit, Item):
                 spider.crawler.stats.inc_value(spider.name+'/outputs/items')
-                self.logger.debug('{:_<18} : OK   [{: <8}]'.format('Process Output', 'Item'))
+                self.logger.debug(action='Process Output', status='OK', message='[{: <8}]'.format('Item'))
             elif isinstance(hit, Request):
                 spider.crawler.stats.inc_value(spider.name+'/outputs/requests')
-                self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Process Output', 'Request', hit.url))
+                self.logger.debug(action='Process Output', status='OK', message='[{: <8}] {}'.format('Item', hit.url))
             yield hit
 
     def process_spider_exception(self, response, exception, spider):
-        self.logger.debug('{:_<18} : OK   [{}] \'{}\''.format('Process Exception', exception, response.url))
+        self.logger.debug(action='Process Exception', status='OK', message='[{}] {}'.format(exception, response.url))
 
     def process_start_requests(self, start_requests, spider):
         yield from start_requests

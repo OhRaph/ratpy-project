@@ -47,7 +47,7 @@ class Index(Logger):
         self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, self.name+'.csv')
         create_file(self.work_file, 'w+', self._index.to_csv(index=False))
 
-        # self.logger.info('{:_<18} : OK   \'{}\''.format('Initialisation', self.work_path))
+        # self.logger.info(action='Initialisation', status='OK')
 
     def __str__(self):
         return self.infos.__str__()
@@ -64,19 +64,19 @@ class Index(Logger):
     # ####################################################### #
 
     def open(self):
-        # self.logger.debug('{:_<18}'.format('Open'))
+        # self.logger.debug(action='Open')
         with open(self.work_file, 'r') as file:
             self._index = pandas.read_csv(file)
             file.close()
-        self.logger.debug('{:_<18} : OK   \'{}\''.format('Open', self.work_file))
+        self.logger.debug(action='Open', status='OK', message='{}'.format(self.work_file))
 
     def close(self):
-        # self.logger.debug('{:_<18}'.format('Close'))
+        # self.logger.debug(action='Close')
         if self.crawler.settings.get('WORK_ON_DISK', False):
             with open(self.work_file, 'w+') as file:
                 file.write(self._index.to_csv(index=False))
                 file.close()
-        self.logger.debug('{:_<18} : OK   \'{}\''.format('Close', self.work_file))
+        self.logger.debug(action='Close', status='OK', message='{}'.format(self.work_file))
 
     # ####################################################### #
     # ####################################################### #
@@ -102,7 +102,7 @@ class Index(Logger):
 
         self._index = self._index.append(kwargs, ignore_index=True)
 
-        self.logger.debug('{:_<18} : OK   {}'.format('Index (+)', json.dumps(kwargs, indent=None, sort_keys=False)))
+        self.logger.debug(action='Index (+)', status='OK', message='{}'.format(json.dumps(kwargs, indent=None, sort_keys=False)))
 
     # ####################################################### #
     # ####################################################### #

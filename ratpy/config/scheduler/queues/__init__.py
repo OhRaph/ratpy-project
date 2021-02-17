@@ -125,7 +125,7 @@ class RatpyPriorityQueue(Logger):
         self.queues = {}
         self.start_prios = start_prios
 
-        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
+        self.logger.debug(action='Initialisation', status='OK')
 
     @classmethod
     def from_crawler(cls, crawler, type, queues_cls, dir, start_prios=()):
@@ -143,16 +143,16 @@ class RatpyPriorityQueue(Logger):
     # ####################################################### #
 
     def open(self):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
 
         for priority in self.start_prios:
             self.queues[priority] = self.qfactory(priority)
             self.queues[priority].open()
 
-        self.logger.info('{:_<18} : OK'.format('Open'))
+        self.logger.info(action='Open', status='OK')
 
     def close(self):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
 
         active = []
 
@@ -160,7 +160,7 @@ class RatpyPriorityQueue(Logger):
             active.append(_p)
             self.queues[_p].close()
 
-        self.logger.info('{:_<18} : OK'.format('Close'))
+        self.logger.info(action='Close', status='OK')
 
         return active
 
@@ -186,9 +186,9 @@ class RatpyPriorityQueue(Logger):
         if success:
             self.crawler.stats.inc_value('scheduler/queue/{}/remaining/[all]'.format(self.queues_type), spider=self.spider)
             self.crawler.stats.inc_value('scheduler/queue/{}/remaining/[{: >3}]'.format(self.queues_type, priority), spider=self.spider)
-            self.logger.debug('{:_<18} : OK   {} [{}]'.format('Push', request.url, timestamp))
+            self.logger.debug(action='Push', status='OK', message='{} [{}]'.format(request.url, timestamp))
         else:
-            self.logger.debug('{:_<18} : NO   {} [{}]'.format('Push', request.url, timestamp))
+            self.logger.debug(action='Push', status='NO', message='{} [{}]'.format(request.url, timestamp))
         return success
 
     def pop(self):
@@ -203,9 +203,9 @@ class RatpyPriorityQueue(Logger):
                     break
 
         if request is not None:
-            self.logger.debug('{:_<18} : OK   {}'.format('Pop', request.url))
+            self.logger.debug(action='Pop', status='OK', message='{}'.format(request.url))
         else:
-            self.logger.debug('{:_<18} : NO'.format('Pop'))
+            self.logger.debug(action='Pop', status='NO')
         return request
 
     # ####################################################### #

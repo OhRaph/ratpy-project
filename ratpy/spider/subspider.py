@@ -94,7 +94,7 @@ class SubSpider(Utils):
         self._index_status = Index(self.spider.crawler, directory=self.directory, name=self.name + '.status', columns=['status', 'url', 'args', 'kwargs'])
         self._index_items = Index(self.spider.crawler, directory=self.directory, name=self.name + '.items', columns=['url', 'pipeline'])
 
-        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
+        self.logger.debug(action='Initialisation', status='OK')
 
     @classmethod
     def from_spider(cls, crawler, spider, *args, **kwargs):
@@ -152,36 +152,36 @@ class SubSpider(Utils):
     # ####################################################### #
 
     def open(self, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
         Utils.open(self)
 
         if self._state == STOP:
             self._index_status.open()
             self._index_items.open()
             self._state = START
-            self.logger.info('{:_<18} : OK   ITEMS = {:5} STATUS = {}'.format('Open', self._index_items.length, json.dumps(self._index_status.counts, indent=None, sort_keys=False)))
+            self.logger.info(action='Open', status='OK', message='ITEMS = {:5} STATUS = {}'.format(self._index_items.length, json.dumps(self._index_status.counts, indent=None, sort_keys=False)))
 
         elif self._state == START:
-            self.logger.error('{:_<18} : FAIL !'.format('Open'))
-            raise RuntimeError("%s already running !" % self.name)
+            self.logger.error(action='Open', status='FAIL')
+            raise RuntimeError('{} already running !'.format(self.name))
         else:
-            self.logger.info('{:_<18} : NO   [{}]'.format('Open', 'DISABLED'))
+            self.logger.info(action='Open', status='NO', message='[{}]'.format('DISABLED'))
 
     def close(self, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
         Utils.close(self)
 
         if self._state == START:
             self._index_status.close()
             self._index_items.close()
             self._state = STOP
-            self.logger.info('{:_<18} : OK   ITEMS = {:5} STATUS = {}'.format('Close', self._index_items.length, json.dumps(self._index_status.counts, indent=None, sort_keys=False)))
+            self.logger.info(action='Close', status='OK', message='ITEMS = {:5} STATUS = {}'.format(self._index_items.length, json.dumps(self._index_status.counts, indent=None, sort_keys=False)))
 
         elif self._state == STOP:
-            self.logger.error('{:_<18} : FAIL !'.format('Close'))
-            raise RuntimeError("%s not running !" % self.name)
+            self.logger.error(action='Close', status='FAIL')
+            raise RuntimeError('{} not running !'.format(self.name))
         else:
-            self.logger.info('{:_<18} : NO   [{}]'.format('Close', 'DISABLED'))
+            self.logger.info(action='Close', status='NO', message='[{}]'.format('DISABLED'))
 
     # ####################################################### #
     # ####################################################### #
@@ -215,7 +215,7 @@ class SubSpider(Utils):
             elif links is None:
                 links = []
             else:
-                self.logger.error('{:_<18} : SKIP'.format('Invalid ['+links.__class__.__name__+']'))
+                self.logger.error(action='Format Links', status='SKIP', message='INVALID [{}]'.format(links.__class__.__name__))
                 links = []
             return links
 
@@ -227,7 +227,7 @@ class SubSpider(Utils):
     # ####################################################### #
 
     def enqueue_request_(self, request, url, *args, **kwargs):
-        self.logger.debug('{:_<18} :      {} {}'.format('Enqueue Request', url.path, url.params))
+        self.logger.debug(action='Enqueue Request', message='{} {}'.format(url.path, url.params))
 
         enqueue = True
         if self.match(url):
@@ -237,22 +237,22 @@ class SubSpider(Utils):
                 enqueue = self.call_function('enqueue_request', True, request, url, *args, **kwargs)
                 if not enqueue:
                     raise IgnoreRequest
-                self.logger.debug('{:_<18} : OK   {} {}'.format('Enqueue Request', url.path, url.params))
+                self.logger.debug(action='Enqueue Request', status='OK', message='{} {}'.format(url.path, url.params))
             except IgnoreRequest:
-                self.logger.debug('{:_<18} : DROP {} {}'.format('Enqueue Request', url.path, url.params))
+                self.logger.debug(action='Enqueue Request', status='DROP', message='{} {}'.format(url.path, url.params))
                 raise IgnoreRequest
 
             for _, _subspider in self.subspiders:
                 enqueue = enqueue and _subspider.enqueue_request_(request, url, *args, **kwargs)
         else:
-            self.logger.debug('{:_<18} : SKIP {} {}'.format('Enqueue Request', url.path, url.params))
+            self.logger.debug(action='Enqueue Request', status='SKIP', message='{} {}'.format(url.path, url.params))
 
         return enqueue
 
     # ####################################################### #
 
     def process_request_(self, request, url, *args, **kwargs):
-        self.logger.debug('{:_<18} :      {} {}'.format('Process Request', url.path, url.params))
+        self.logger.debug(action='Process Request', message='{} {}'.format(url.path, url.params))
 
         if self.match(url):
             url = self.next(url)
@@ -261,22 +261,22 @@ class SubSpider(Utils):
                 request = self.call_function('process_request', request, request, url, *args, **kwargs)
                 if request is None:
                     raise IgnoreRequest
-                self.logger.debug('{:_<18} : OK   {} {}'.format('Process Request', url.path, url.params))
+                self.logger.debug(action='Process Request', status='OK', message='{} {}'.format(url.path, url.params))
             except IgnoreRequest:
-                self.logger.debug('{:_<18} : DROP {} {}'.format('Process Request', url.path, url.params))
+                self.logger.debug(action='Process Request', status='DROP', message='{} {}'.format(url.path, url.params))
                 raise IgnoreRequest
 
             for _, _subspider in self.subspiders:
                 request = _subspider.process_request_(request, url, *args, **kwargs)
         else:
-            self.logger.debug('{:_<18} : SKIP {} {}'.format('Process Request', url.path, url.params))
+            self.logger.debug(action='Process Request', status='SKIP', message='{} {}'.format(url.path, url.params))
 
         return request
 
     # ####################################################### #
 
     def process_response_(self, response, url, *args, **kwargs):
-        self.logger.debug('{:_<18} :      {} {}'.format('Process Response', url.path, url.params))
+        self.logger.debug(action='Process Response', message='{} {}'.format(url.path, url.params))
 
         if self.match(url):
             url = self.next(url)
@@ -285,23 +285,23 @@ class SubSpider(Utils):
                 response = self.call_function('process_response', response, response, url, *args, **kwargs)
                 if response is None:
                     raise IgnoreResponse
-                self.logger.debug('{:_<18} : OK   {} {}'.format('Process Response', url.path, url.params))
+                self.logger.debug(action='Process Response', status='OK', message='{} {}'.format(url.path, url.params))
             except IgnoreResponse:
-                self.logger.debug('{:_<18} : DROP {} {}'.format('Process Response', url.path, url.params))
+                self.logger.debug(action='Process Response', status='DROP', message='{} {}'.format(url.path, url.params))
                 raise IgnoreResponse
 
             for _, _subspider in self.subspiders:
                 response = _subspider.process_response_(response, url, *args, **kwargs)
 
         else:
-            self.logger.debug('{:_<18} : SKIP {} {}'.format('Process Response', url.path, url.params))
+            self.logger.debug(action='Process Response', status='SKIP', message='{} {}'.format(url.path, url.params))
 
         return response
 
     # ####################################################### #
 
     def parse_(self, response, url, *args, **kwargs):
-        self.logger.debug('{:_<18} :      {} {}'.format('Parse', url.path, url.params))
+        self.logger.debug(action='Parse', message='{} {}'.format(url.path, url.params))
 
         status = '!'
         if self.match(url):
@@ -317,7 +317,7 @@ class SubSpider(Utils):
                         status = True
                         if isinstance(result, Item):
                             self._index_items.add(url=url, pipeline=result['pipeline'])
-                            self.logger.info('{:_<18} : OK   {} {} --> \'{}\''.format('Parse', url.path, url.params, result['pipeline']))
+                            self.logger.info(action='Parse', status='OK', message='{} {} --> \'{}\''.format(url.path, url.params, result['pipeline']))
                         elif isinstance(result, Interval):
                             interval = result
                             continue
@@ -325,12 +325,12 @@ class SubSpider(Utils):
 
                     if interval > 0 and self.crawler.settings.get('COMMAND') in ['crawl', 'runspider']:
                         yield Link(url, timestamp=time.time()+interval, cb_kwargs=kwargs.update(interval.cb_kwargs))
-                        self.logger.debug('{:_<18} : OK   {} {} --> {}'.format('Interval', url.path, url.params, interval))
+                        self.logger.debug(action='Interval', status='OK', message='{} {} --> {}'.format(url.path, url.params, interval))
                     else:
-                        self.logger.debug('{:_<18} : NO   {} {}'.format('Interval', url.path, url.params))
+                        self.logger.debug(action='Interval', status='NO', message='{} {}'.format(url.path, url.params))
 
                     if status is False:
-                        self.logger.info('{:_<18} : DROP {} {}'.format('Parse', url.path, url.params))
+                        self.logger.info(action='Parse', status='DROP', message='{} {}'.format(url.path, url.params))
                     else:
                         self.spider.crawler.stats.inc_value('subspiders/'+self.name)
                 else:
@@ -339,7 +339,7 @@ class SubSpider(Utils):
                         results = _subspider.parse_(response, url, *args, **kwargs) or []
                         yield from self.process_results_(results, url, *args, **kwargs)
         else:
-            self.logger.debug('{:_<18} : SKIP {} {}'.format('Parse', url.path, url.params))
+            self.logger.debug(action='Parse', status='SKIP', message='{} {}'.format(url.path, url.params))
             yield
 
         self._index_status.add(status=status, url=url, args=str(args), kwargs=str(kwargs))
@@ -355,10 +355,10 @@ class SubSpider(Utils):
                 return res
             if res is None:
                 return []
-            self.logger.error('{:_<18} : SKIP {} {}'.format('Invalid ['+res.__class__.__name__+']', url.path, url.params))
+            self.logger.error(action='Format Results', status='SKIP', message='INVALID [{}] {} {}'.format(res.__class__.__name__, url.path, url.params))
             return []
 
-        self.logger.debug('{:_<18} :      {} {}'.format('Process Results', url.path, url.params))
+        self.logger.debug(action='Process Results', message='{} {}'.format(url.path, url.params))
 
         for result in filter(None, format_results(results)):
             if isinstance(result, Item):
@@ -377,7 +377,7 @@ class SubSpider(Utils):
                 yield from self.process_results_(result, url, *args, item=item, **kwargs)
         yield from []
 
-        self.logger.debug('{:_<18} : OK   {} {}'.format('Process Results', url.path, url.params))
+        self.logger.debug(action='Process Results', status='OK', message='{} {}'.format(url.path, url.params))
 
     # ####################################################### #
     # ####################################################### #

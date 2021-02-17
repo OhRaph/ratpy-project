@@ -63,7 +63,7 @@ class Spider(Utils, scrapy.Spider):
         if start_requests:
             self._start_requests = start_requests
 
-        self.logger.info('{:_<18} : OK   COMMAND = {}'.format('Initialisation', self.crawler.settings['COMMAND']))
+        self.logger.info(action='Initialisation', status='OK', message='COMMAND = {}'.format(self.crawler.settings['COMMAND']))
 
     def __del__(self):
         return
@@ -102,23 +102,23 @@ class Spider(Utils, scrapy.Spider):
     # ####################################################### #
 
     def open(self, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
         Utils.open(self)
 
         self._index_items.open()
 
-        self.logger.info('{:_<18} : OK'.format('Open'))
+        self.logger.info(action='Open', status='OK')
 
         if self.linker is False:
             self.logger.warning('LINKER SET TO FALSE !')
 
     def close(self, reason, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
         Utils.close(self)
 
         self._index_items.close()
 
-        self.logger.info('{:_<18} : OK   REASON = {}'.format('Close', reason))
+        self.logger.info(action='Close', status='OK', message='REASON = {}'.format(reason))
 
     # ####################################################### #
     # ####################################################### #
@@ -129,32 +129,36 @@ class Spider(Utils, scrapy.Spider):
             args = [ast.literal_eval(value) for value in args]
         except ValueError:
             args = []
-            self.logger.error("Unable to evaluate 'args' !")
+            self.logger.error(action='Start URL', status='FAIL', message='Unable to evaluate \'args\' !')
 
         try:
             kwargs = {key: ast.literal_eval(value) for key, value in kwargs.items()}
         except ValueError:
             kwargs = {}
-            self.logger.error("Unable to evaluate 'kwargs' !")
+            self.logger.error(action='Start URL', status='FAIL', message='Unable to evaluate \'kwargs\' !')
 
         return Link(url, *args, **kwargs)
 
     def start_requests(self):
 
         if self._start_url:
+            self.logger.info(action='Start Requests', message='Use URL passed as argument')
+
             if self._start_url.kwargs.get('callback') is not None:
-                self.logger.warning('Request callback reset to default !')
+                self.logger.warning(action='Start Requests', message='Request callback reset to default !')
             self._start_url.kwargs['callback'] = self.parse
 
-            self.logger.info('{:_<18} : {} {}'.format('Request URL', self._start_url.url.path, self._start_url.url.params))
-            self.logger.info('{:_<18} : {}'.format('Request args', self._start_url.args))
-            self.logger.info('{:_<18} : {}'.format('Request kwargs', self._start_url.kwargs))
+            self.logger.info(action='Start Requests', message='URL    : {} {}'.format(self._start_url.url.path, self._start_url.url.params))
+            self.logger.info(action='Start Requests', message='Args   : {}'.format(self._start_url.args))
+            self.logger.info(action='Start Requests', message='Kwargs : {}'.format(self._start_url.kwargs))
             yield from Request.create(self._start_url)
 
         elif self._start_requests:
+            self.logger.info(action='Start Requests', message='Use command custom method')
             yield from self._start_requests()
 
         else:
+            self.logger.info(action='Start Requests', message='Use spider start links')
             for link in self.subspiders.start_links_():
                 yield from Request.create(link)
 
@@ -179,7 +183,7 @@ class Spider(Utils, scrapy.Spider):
 
         url = URL(response.url if response is not None else '')
 
-        self.logger.debug('{:_<18} :      {} {}'.format('Parse', url.path, url.params))
+        self.logger.debug(action='Parse', message='{} {}'.format( url.path, url.params))
 
         if len(url.remaining) > 0:
             self.logger.debug('New parse !')
@@ -210,7 +214,7 @@ class Spider(Utils, scrapy.Spider):
                     self.logger.debug('Other result !')
                     yield from []
 
-        self.logger.debug('{:_<18} : OK   {} {}'.format('Parse', url.path, url.params))
+        self.logger.debug(action='Parse', status='OK', message='{} {}'.format( url.path, url.params))
 
     # ####################################################### #
     # ####################################################### #

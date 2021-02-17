@@ -104,14 +104,14 @@ class AttributesChecker(Checker):
                 attribute_value = getattr(self, attribute_name)
                 if not isinstance(attribute_value, attribute_value_types):
                     if attribute_value is not None:
-                        self._invalid_type('attribute value', attribute_name, attribute_value_types)
+                        self._invalid_value('attribute value', attribute_name, attribute_value_types)
                     attribute_value = attribute_default_value
                 else:
                     self._success('attribute', attribute_name, attribute_value)
             else:
                 attribute_value = attribute_default_value
         else:
-            self._invalid_name(attribute_name, self._possible_attributes.keys())
+            self._invalid_name('attribute name', attribute_name, self._possible_attributes.keys())
         return attribute_value
 
     # ####################################################### #

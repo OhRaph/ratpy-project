@@ -35,7 +35,7 @@ class RatpyListQueue(Logger):
         self.crawler = crawler
         Logger.__init__(self, self.crawler, directory=self.directory)
 
-        self.logger.debug('{:_<18} : OK   [{}]'.format('Initialisation', self.priority))
+        self.logger.debug(action='Initialisation', status='OK', message='[{}]'.format(self.priority))
 
     # ####################################################### #
 
@@ -48,21 +48,21 @@ class RatpyListQueue(Logger):
     # ####################################################### #
 
     def open(self):
-        self.logger.debug('{:_<18}        [{}]'.format('Open', self.priority))
+        self.logger.debug(action='Open', message='[{}]'.format(self.priority))
 
         self._list = []
         self._total = 0
 
-        self.logger.debug('{:_<18} : OK   [{}]'.format('Open', self.priority))
+        self.logger.debug(action='Open', status='OK', message='[{}]'.format(self.priority))
 
     def close(self):
-        self.logger.debug('{:_<18}        [{}]'.format('Close', self.priority))
+        self.logger.debug(action='Close', message='[{}]'.format(self.priority))
 
         for _ in self._list:
             del self._list[0]
             self._total -= 1
 
-        self.logger.debug('{:_<18} : OK   [{}]'.format('Close', self.priority))
+        self.logger.debug(action='Close', status='OK', message='[{}]'.format(self.priority))
 
     # ####################################################### #
 
@@ -80,17 +80,17 @@ class RatpyListQueue(Logger):
         self._list.append(x)
         self._list.sort(key=lambda elem: elem[1])
         self._total += 1
-        self.logger.debug('{:_<18} : OK   [{}]'.format('Push', self.priority))
+        self.logger.debug(action='Push', status='OK', message='[{}]'.format(self.priority))
         return True
 
     def pop(self):
         if self._total and self._list[0][1] <= time.time():
             self._total -= 1
             request = self._list.pop(0)[0]
-            self.logger.debug('{:_<18} : OK   [{}]'.format('Pop', self.priority))
+            self.logger.debug(action='Pop', status='OK', message='[{}]'.format(self.priority))
         else:
             request = None
-            self.logger.debug('{:_<18} : NO   [{}]'.format('Pop', self.priority))
+            self.logger.debug(action='Pop', status='NO', message='[{}]'.format(self.priority))
         return request
 
     # ####################################################### #

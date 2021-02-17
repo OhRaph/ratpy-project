@@ -7,7 +7,7 @@ import scrapy
 
 from ratpy.http.url import URL
 
-__all__ = ['Request', 'IgnoreRequest', 'PostponeRequest']
+__all__ = ['Request', 'IgnoreRequest']
 
 # ############################################################### #
 # ############################################################### #

@@ -39,7 +39,7 @@ class RatpyDupefilter(Logger):
         self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, 'requests.fingerprints')
         self.fingerprints = set()
 
-        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
+        self.logger.debug(action='Initialisation', status='OK')
 
     @classmethod
     def from_crawler(cls, crawler, directory):
@@ -48,7 +48,7 @@ class RatpyDupefilter(Logger):
     # ####################################################### #
 
     def open(self, spider, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
 
         self.spider = spider
 
@@ -58,17 +58,17 @@ class RatpyDupefilter(Logger):
             with open(self.work_file, 'r+') as file:
                 self.fingerprints.update(x.rstrip() for x in file)
 
-        self.logger.info('{:_<18} : OK   [{}] Requests : {}'.format('Open', self.spider.name, len(self)))
+        self.logger.info(action='Open', status='OK', message='[{}] Requests : {}'.format(self.spider.name, len(self)))
 
     def close(self, reason, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
 
         if self.crawler.settings.get('WORK_ON_DISK', False):
             with open(self.work_file, 'w+') as file:
                 for fp in self.fingerprints:
                     file.write(fp + '\n')
 
-        self.logger.info('{:_<18} : OK   [{}] Requests : {}'.format('Close', self.spider.name, len(self)))
+        self.logger.info(action='Close', status='OK', message='[{}] Requests : {}'.format(self.spider.name, len(self)))
 
     # ####################################################### #
 
@@ -91,7 +91,7 @@ class RatpyDupefilter(Logger):
 
         _fp = RatpyDupefilter.fingerprint(request)
         if _fp in self.fingerprints:
-            self.logger.debug('{:_<18} : OK   [{}]'.format('Filtered', request.url))
+            self.logger.debug(action='Filter', status='OK', message='[{}]'.format(request.url))
             return True
 
         self.fingerprints.add(_fp)

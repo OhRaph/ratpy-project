@@ -3,9 +3,8 @@
 from twisted.internet import task
 
 from scrapy import signals
-from scrapy.exceptions import NotConfigured
 
-from ratpy.utils import Logger
+from ratpy.utils import Logger, NotConfigured
 
 # ############################################################### #
 # ############################################################### #
@@ -57,7 +56,7 @@ class LogStats(Logger):
     # ####################################################### #
 
     def open(self, spider):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
 
         self.pagesprev = 0
         self.itemsprev = 0
@@ -65,15 +64,15 @@ class LogStats(Logger):
         self.task = task.LoopingCall(self.log, spider)
         self.task.start(self.interval, now=False)
 
-        self.logger.info('{:_<18} : OK'.format('Open'))
+        self.logger.info(action='Open', status='OK')
 
     def close(self, spider, reason):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
 
         if self.task and self.task.running:
             self.task.stop()
 
-        self.logger.info('{:_<18} : OK'.format('Close'))
+        self.logger.info(action='Close', status='OK')
 
     # ####################################################### #
     # ####################################################### #
@@ -84,15 +83,7 @@ class LogStats(Logger):
         irate = (items - self.itemsprev) * self.multiplier
         prate = (pages - self.pagesprev) * self.multiplier
         self.pagesprev, self.itemsprev = pages, items
-
-        msg = "Crawled %(pages)d pages (at %(pagerate)d pages/min), scraped %(items)d items (at %(itemrate)d items/min)"
-        log_args = {
-            'pages': pages,
-            'pagerate': prate,
-            'items': items,
-            'itemrate': irate
-            }
-        self.logger.info(msg, log_args)
+        self.logger.info('Crawled {} pages (at {} pages/min), scraped {} items (at {} items/min)'.format(pages, prate, items, irate))
 
     # ####################################################### #
     # ####################################################### #

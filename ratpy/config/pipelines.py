@@ -40,29 +40,29 @@ class RatpyItemPipeline(Logger):
     # ####################################################### #
 
     def open(self, spider, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
 
         if spider.name not in self.spiders:
             self.spiders[spider.name] = spider
-            self.logger.info('{:_<18} : OK   [{}]'.format('Open', spider.name))
+            self.logger.info(action='Open', status='OK', message='[{}]'.format(spider.name))
         else:
-            self.logger.error('{:_<18} : FAIL !'.format('Open'))
+            self.logger.error(action='Open', status='FAIL', message='[{}]'.format(spider.name))
             raise RuntimeError("%s pipeline already running !" % spider.name)
 
     def close(self, spider, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
 
         if spider.name in self.spiders:
             del self.spiders[spider.name]
-            self.logger.info('{:_<18} : OK   [{}]'.format('Close', spider.name))
+            self.logger.info(action='Close', status='OK', message='[{}]'.format(spider.name))
         else:
-            self.logger.error('{:_<18} : FAIL !'.format('Close'))
+            self.logger.error(action='Close', status='FAIL', message='[{}]'.format(spider.name))
             raise RuntimeError("%s pipeline not running !" % spider.name)
 
     # ####################################################### #
 
     def process_item(self, item, spider):
-        self.logger.info('{:_<18} : OK   [{}]'.format('Process Item', item['pipeline']))
+        self.logger.debug(action='Process Item', status='OK', message='[{}]'.format(item['pipeline']))
         return item
 
     # ####################################################### #

@@ -135,18 +135,18 @@ class Checker(Logger):
 
     # ####################################################### #
 
-    def _invalid_name(self, name, valid_names):
-        self.logger.error('INVALID NAME ! [%s] USE NAMES IN %s', name, valid_names)
+    def _invalid_name(self, element, name, valid_names):
+        self.logger.error(action='User '+element, status='FAIL', message='[{}] Use name(s) {} for {}'.format(name, valid_names, element))
         raise CheckerException()
 
     def _invalid_type(self, element, name, types):
-        self.logger.error('INVALID TYPE ! USE TYPE(S) %s FOR \'%s\' %s', types_to_str(types), name, element.upper())
+        self.logger.error(action='User '+element, status='FAIL', message='[{}] Use type(s) {} for {}'.format(name, values_to_str(types), element))
 
     def _invalid_value(self, element, name, values):
-        self.logger.error('INVALID VALUE ! USE VALUE(S) %s FOR \'%s\' %s', values_to_str(values), name, element.upper())
+        self.logger.error(action='User '+element, status='FAIL', message='[{}] Use value(s) {} for {}'.format(name, values_to_str(values), element))
 
     def _success(self, element, name, value):
-        self.logger.debug('{:_<18} : OK   [%s: %s]'.format('User '+element), name, value.__class__.__name__)
+        self.logger.debug(action='User '+element, status='OK', message='[{}] --> {}'.format(name, value.__class__.__name__))
 
     # ####################################################### #
     # ####################################################### #

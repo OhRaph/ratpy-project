@@ -59,7 +59,7 @@ class RatpyScheduler(Logger):
         self.q_disk = self._disk_queue()
         self.q_memory = self._memory_queue()
 
-        self.logger.debug('{:_<18} : OK'.format('Initialisation'))
+        self.logger.debug(action='Initialisation', status='OK')
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -87,24 +87,26 @@ class RatpyScheduler(Logger):
     # ####################################################### #
 
     def open(self, spider, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
 
         self.spider = spider
 
         if self.q_disk is not None:
             self.q_disk.open()
             if len(self.q_disk):
-                self.logger.info("Resuming crawl ({} requests scheduled)".format(len(self.q_disk)))
+                self.logger.info(action='Resuming Crawl', status='OK', message='[{}]'.format(len(self.q_disk)))
+            else:
+                self.logger.info(action='Resuming Crawl', status='NO')
 
         if self.q_memory is not None:
             self.q_memory.open()
 
         self.dupefilter.open(spider)
 
-        self.logger.info('{:_<18} : OK   [{}]'.format('Open', self.spider.name))
+        self.logger.info(action='Open', status='OK', message='[{}]'.format(self.spider.name))
 
     def close(self, reason, *args, **kwargs):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
 
         self.dupefilter.close(reason)
 
@@ -115,7 +117,7 @@ class RatpyScheduler(Logger):
         if self.q_memory is not None:
             self.q_memory.close()
 
-        self.logger.info('{:_<18} : OK   [{}]'.format('Close', self.spider.name))
+        self.logger.info(action='Close', status='OK', message='[{}]'.format(self.spider.name))
 
     # ####################################################### #
 
@@ -139,23 +141,23 @@ class RatpyScheduler(Logger):
             if self._disk_queue_push(req):
                 self.crawler.stats.inc_value('scheduler/queues/push/disk', spider=self.spider)
                 self.crawler.stats.inc_value('scheduler/queues/push', spider=self.spider)
-                self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Enqueue', 'DISK', req.url))
+                self.logger.debug(action='Enqueue', status='OK', message='[{: <8}] {}'.format('DISK', req.url))
                 return True
 
             if self._memory_queue_push(req):
                 self.crawler.stats.inc_value('scheduler/queues/push/memory', spider=self.spider)
                 self.crawler.stats.inc_value('scheduler/queues/push', spider=self.spider)
-                self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Enqueue', 'MEMORY', req.url))
+                self.logger.debug(action='Enqueue', status='OK', message='[{: <8}] {}'.format('MEMORY', req.url))
                 return True
 
-            self.logger.debug('{:_<18} : NO   [{: <8}] \'{}\''.format('Enqueue', 'NO QUEUE', req.url))
+            self.logger.debug(action='Enqueue', status='NO', message='[{: <8}] {}'.format('NO QUEUE', req.url))
             return False
 
         if not request.dont_filter:
 
             if self.dupefilter.seen(request):
                 self.crawler.stats.inc_value('scheduler/filtered', spider=self.spider)
-                self.logger.debug('{:_<18} : NO   [{: <8}] \'{}\''.format('Enqueue', 'SEEN', request.url))
+                self.logger.debug(action='Enqueue', status='NO', message='[{: <8}] {}'.format('SEEN', request.url))
                 return False
             else:
                 request.__class__ = Request
@@ -164,7 +166,7 @@ class RatpyScheduler(Logger):
                     if not self.spider.subspiders.enqueue_request_(request, url, **request.cb_kwargs):
                         raise IgnoreRequest
                 except IgnoreRequest:
-                    self.logger.debug('{:_<18} : NO   [{: <8}] \'{}\''.format('Enqueue', 'IGNORE', request.url))
+                    self.logger.debug(action='Enqueue', status='NO', message='[{: <8}] {}'.format('IGNORE', request.url))
                     return False
 
         return _enqueue(request)
@@ -179,17 +181,17 @@ class RatpyScheduler(Logger):
             if req:
                 self.crawler.stats.inc_value('scheduler/queues/pop/memory', spider=self.spider)
                 self.crawler.stats.inc_value('scheduler/queues/pop', spider=self.spider)
-                self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Next', 'MEMORY', req.url))
+                self.logger.debug(action='Next', status='OK', message='[{: <8}] {}'.format('MEMORY', req.url))
                 return req
 
             req = self._disk_queue_pop()
             if req:
                 self.crawler.stats.inc_value('scheduler/queues/pop/disk', spider=self.spider)
                 self.crawler.stats.inc_value('scheduler/queues/pop', spider=self.spider)
-                self.logger.debug('{:_<18} : OK   [{: <8}] \'{}\''.format('Next', 'DISK', req.url))
+                self.logger.debug(action='Next', status='OK', message='[{: <8}] {}'.format('DISK', req.url))
                 return req
 
-            self.logger.debug('{:_<18} : NO   [{: <8}]'.format('Next', 'EMPTY'))
+            self.logger.debug(action='Next', status='NO', message='[{: <8}]'.format('EMPTY'))
             return None
 
         if self.crawler.settings.get('COMMAND') == 'infos':

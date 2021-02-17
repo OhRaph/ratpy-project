@@ -1,5 +1,6 @@
 """ Ratpy Utils module """
 
+import hashlib
 import re
 import sys
 import unidecode
@@ -15,14 +16,20 @@ from ratpy.utils.monitor import monitored
 from ratpy.utils.path import *
 
 __all__ = [
-    'Utils',
+    'Utils', 'NotConfigured',
     'Logger', 'monitored',
     'Attribute', 'AttributeParams', 'AttributesSet', 'AttributesChecker',
     'Function', 'FunctionParams', 'FunctionsSet', 'FunctionsChecker',
-    'sizeof', 'normalize', 'to_unicode', 'to_bytes', 'load_object', 'create_instance'
+    'sizeof', 'normalize', 'to_unicode', 'to_bytes', 'to_md5sum', 'load_object', 'create_instance'
     ]
 
 # ############################################################### #
+# ############################################################### #
+
+
+class NotConfigured(Exception):
+    pass
+
 # ############################################################### #
 
 
@@ -103,6 +110,16 @@ def to_bytes(text, encoding=None, errors='strict'):
     if encoding is None:
         encoding = 'utf-8'
     return text.encode(encoding, errors)
+
+
+def to_md5sum(file):
+    m = hashlib.md5()
+    while True:
+        d = file.read(8096)
+        if not d:
+            break
+        m.update(d)
+    return m.hexdigest()
 
 # ############################################################### #
 

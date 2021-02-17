@@ -56,14 +56,14 @@ class StatsCollector(Logger):
             with open(self.work_file, 'r') as file:
                 self._previous_stats = json.loads(file.read())
         if self._dump:
-            self.logger.info("Dumping Ratpy stats:\n" + self._to_dump_stats(DUMP_BEGIN))
+            self.logger.info('Dumping stats:\n' + self._to_dump_stats(DUMP_BEGIN))
 
     def close_spider(self, spider, reason):
         if self._store and self.crawler.settings.get('WORK_ON_DISK', False):
             with open(self.work_file, 'w+') as file:
                 file.write(json.dumps(self._to_store_stats(), indent=4, sort_keys=True, default=str))
         if self._dump:
-            self.logger.info("Dumping Ratpy stats:\n" + self._to_dump_stats(DUMP_END))
+            self.logger.info('Dumping stats:\n' + self._to_dump_stats(DUMP_END))
 
     # ####################################################### #
     # ####################################################### #

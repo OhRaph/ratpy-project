@@ -3,9 +3,8 @@
 from datetime import datetime
 
 from scrapy import signals
-from scrapy.exceptions import NotConfigured
 
-from ratpy.utils import Logger
+from ratpy.utils import Logger, NotConfigured
 
 # ############################################################### #
 # ############################################################### #
@@ -50,15 +49,15 @@ class CoreStats(Logger):
     # ####################################################### #
 
     def open(self, spider):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
 
         self.time_begin = datetime.utcnow()
         self.crawler.stats.set_value('time_begin', self.time_begin)
 
-        self.logger.info('{:_<18} : OK'.format('Open'))
+        self.logger.info(action='Open', status='OK')
 
     def close(self, spider, reason):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
 
         self.time_end = datetime.utcnow()
         self.time_total = self.time_end - self.time_begin
@@ -66,7 +65,7 @@ class CoreStats(Logger):
         self.crawler.stats.set_value('time_end', self.time_end)
         self.crawler.stats.set_value('end_reason', reason)
 
-        self.logger.info('{:_<18} : OK'.format('Close'))
+        self.logger.info(action='Close', status='OK')
 
     # ####################################################### #
     # ####################################################### #

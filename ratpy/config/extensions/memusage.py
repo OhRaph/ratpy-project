@@ -8,11 +8,10 @@ import sys
 from twisted.internet import task
 
 from scrapy import signals
-from scrapy.exceptions import NotConfigured
 from scrapy.mail import MailSender
 from scrapy.utils.engine import get_engine_status
 
-from ratpy.utils import Logger
+from ratpy.utils import Logger, NotConfigured
 
 # ############################################################### #
 # ############################################################### #
@@ -68,7 +67,7 @@ class MemoryUsage(Logger):
     # ####################################################### #
 
     def open(self):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
 
         self.crawler.stats.set_value('memusage/startup', self.get_virtual_size())
 
@@ -87,16 +86,16 @@ class MemoryUsage(Logger):
             self._tasks.append(_task)
             _task.start(self.interval, now=True)
 
-        self.logger.info('{:_<18} : OK'.format('Open'))
+        self.logger.info(action='Open', status='OK')
 
     def close(self):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
 
         for _task in self._tasks:
             if _task.running:
                 _task.stop()
 
-        self.logger.info('{:_<18} : OK'.format('Close'))
+        self.logger.info(action='Close', status='OK')
 
     # ####################################################### #
     # ####################################################### #
@@ -114,10 +113,10 @@ class MemoryUsage(Logger):
         self.crawler.stats.max_value('memusage/max', MemoryUsage.get_virtual_size())
 
     def _check_warning(self):
-        self.logger.debug('{:_<18}'.format('Check Warning'))
+        self.logger.debug(action='Check Warning')
 
         if self.warned:
-            self.logger.debug('{:_<18} : OK   [{}]'.format('Check Warning', 'ALREADY REACHED'))
+            self.logger.debug(action='Check Warning', status='OK', message='[{}]'.format('ALREADY REACHED'))
             return
 
         if MemoryUsage.get_virtual_size() > self.warning:
@@ -125,32 +124,32 @@ class MemoryUsage(Logger):
             self.crawler.stats.set_value('memusage/warning_reached', 1)
 
             mem = self.warning/1024/1024
-            self.logger.warning("Memory usage reached %(memusage)dM", {'memusage': mem}, extra={'crawler': self.crawler})
+            self.logger.warning('Memory usage reached {}M'.format(mem))
 
             if self._mailing_list:
-                subject = "%s warning: memory usage reached %dM at %s" % (self.crawler.settings['BOT_NAME'], mem, socket.gethostname())
+                subject = '{} warning: memory usage reached {}M at {}'.format(self.crawler.settings['BOT_NAME'], mem, socket.gethostname())
                 self._send_report(subject)
                 self.crawler.stats.set_value('memusage/warning_notified', 1)
 
             self.warned = True
 
-            self.logger.debug('{:_<18} : OK   [{}]'.format('Check Warning', 'REACHED'))
+            self.logger.debug(action='Check Warning', status='OK', message='[{}]'.format('REACHED'))
         else:
-            self.logger.debug('{:_<18} : OK   [{}]'.format('Check Warning', 'NOT REACHED'))
+            self.logger.debug(action='Check Warning', status='OK', message='[{}]'.format('NOT REACHED'))
 
     def _check_limit(self):
-        self.logger.debug('{:_<18}'.format('Check Limit'))
+        self.logger.debug(action='Check Limit')
 
         if MemoryUsage.get_virtual_size() > self.limit:
 
             self.crawler.stats.set_value('memusage/limit_reached', 1)
 
             mem = self.limit/1024/1024
-            self.logger.error("Memory usage exceeded %(memusage)dM", {'memusage': mem}, extra={'crawler': self.crawler})
-            self.logger.info("Shutting down Scrapy...")
+            self.logger.error('Memory usage exceeded {}M'.format(mem))
+            self.logger.info(action='Check Limit', status='STOP', message='Shutting down Scrapy...')
 
             if self._mailing_list:
-                subject = "%s limit: memory usage reached %dM at %s" % (self.crawler.settings['BOT_NAME'], mem, socket.gethostname())
+                subject = '{} limit: memory usage reached {}M at {}'.format(self.crawler.settings['BOT_NAME'], mem, socket.gethostname())
                 self._send_report(subject)
                 self.crawler.stats.set_value('memusage/limit_notified', 1)
 
@@ -161,28 +160,28 @@ class MemoryUsage(Logger):
             else:
                 self.crawler.stop()
 
-            self.logger.debug('{:_<18} : OK   [{}]'.format('Check Limit', 'REACHED'))
+            self.logger.debug(action='Check Limit', status='OK', message='[{}]'.format('REACHED'))
         else:
-            self.logger.debug('{:_<18} : OK   [{}]'.format('Check Limit', 'NOT REACHED'))
+            self.logger.debug(action='Check Limit', status='OK', message='[{}]'.format('NOT REACHED'))
 
     # ####################################################### #
 
     def _send_report(self, subject):
-        self.logger.debug('{:_<18}'.format('Send Report'))
+        self.logger.debug(action='Send Report')
 
         stats = self.crawler.stats
 
-        s = "Memory usage at engine startup : %dM\r\n" % (stats.get_value('memusage/startup')/1024/1024)
-        s += "Maximum memory usage           : %dM\r\n" % (stats.get_value('memusage/max')/1024/1024)
-        s += "Current memory usage           : %dM\r\n" % (self.get_virtual_size()/1024/1024)
-        s += "ENGINE STATUS ------------------------------------------------------- \r\n"
-        s += "\r\n"
+        s = 'Memory usage at engine startup : {}M\r\n'.format(stats.get_value('memusage/startup')/1024/1024)
+        s += 'Maximum memory usage           : {}M\r\n'.format(stats.get_value('memusage/max')/1024/1024)
+        s += 'Current memory usage           : {}M\r\n'.format(self.get_virtual_size()/1024/1024)
+        s += 'ENGINE STATUS ------------------------------------------------------- \r\n'
+        s += '\r\n'
         s += pprint.pformat(get_engine_status(self.crawler.engine))
-        s += "\r\n"
+        s += '\r\n'
 
         self._mailer.send(self._mailing_list, subject, s)
 
-        self.logger.debug('{:_<18} : OK'.format('Send Report'))
+        self.logger.debug(action='Send Report', status='OK')
 
     # ####################################################### #
     # ####################################################### #

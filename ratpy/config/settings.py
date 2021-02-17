@@ -21,7 +21,8 @@ LOG_FILE = None
 # LOG_FILE = LOG_DIR + '%s-%s.logs' % (BOT_NAME, datetime.datetime.now().strftime('%Y-%m-%d-%H-%M-%S-%f'))
 LOG_ENCODING = 'utf-8'
 LOG_DATEFORMAT = '%Y-%m-%d %H:%M:%S'
-LOG_FORMAT = '%(asctime)s  %(levelname)9s | %(name)-65s %(message)s'
+LOG_NAME_SIZE = 60
+LOG_FORMAT = '%(asctime)s  %(levelname)9s | %(name)-{}s %(message)s'.format(LOG_NAME_SIZE)
 LOG_FORMATTER = 'scrapy.logformatter.LogFormatter'
 LOG_IN_FILES = True
 LOG_LEVEL_IN_FILES = 'INFO'
@@ -106,16 +107,24 @@ ITEM_PIPELINES = {
     'ratpy.config.pipelines.RatpyItemPipeline': 94
     }
 ITEM_PIPELINES_BASE = {
-    'scrapy.pipelines.images.ImagesPipeline': 1
+    'ratpy.config.pipeline.files.FilesPipeline': 1,
+    'ratpy.config.pipeline.images.ImagesPipeline': 2,
+    'ratpy.config.pipeline.media.MediaPipeline': 3
     }
-ITEM_PROCESSOR = 'scrapy.pipelines.ItemPipelineManager'
-FEED_STORAGE_FTP_ACTIVE = False
-FEED_STORAGE_S3_ACL = ''
-FILES_STORE_S3_ACL = 'private'
-FILES_STORE_GCS_ACL = ''
-IMAGES_STORE_S3_ACL = 'private'
-IMAGES_STORE_GCS_ACL = ''
+ITEM_PROCESSOR = 'ratpy.config.pipeline.RatpyPipeline'
+
+FILES_STORE = WORK_DIR+'/pipelines/files/'
+FILES_EXPIRES = 90
+FILES_URLS_FIELD = '_file_urls'
+FILES_RESULTS_FIELD = '_file_results'
+
 IMAGES_STORE = WORK_DIR+'/pipelines/images/'
+IMAGES_EXPIRES = 45
+IMAGES_URLS_FIELD = '_image_urls'
+IMAGES_RESULTS_FIELD = '_image_results'
+IMAGES_MIN_WIDTH = 100
+IMAGES_MIN_HEIGHT = 100
+IMAGES_THUMBS = {'small': (64, 64), 'large': (128, 128)}
 
 # RESOLVER
 DNSCACHE_ENABLED = True
@@ -292,7 +301,6 @@ FEED_STORAGES_BASE = {
     '': 'scrapy.extensions.feedexport.FileFeedStorage',
     'file': 'scrapy.extensions.feedexport.FileFeedStorage',
     'stdout': 'scrapy.extensions.feedexport.StdoutFeedStorage',
-    's3': None,
     'ftp': 'scrapy.extensions.feedexport.FTPFeedStorage',
 }
 FEED_EXPORTERS = {}

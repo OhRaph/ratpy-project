@@ -110,14 +110,14 @@ class FunctionsChecker(Checker):
                 function_result = function(*args, **kwargs)
                 if not isinstance(function_result, function_result_types):
                     if function_result is not None:
-                        self._invalid_type('function result', function_name, function_result_types)
+                        self._invalid_value('function result', function_name, function_result_types)
                     function_result = self._possible_functions[function_name].default
                 else:
                     self._success('function', function_name, function_result)
             else:
                 function_result = function_default_result
         else:
-            self._invalid_name(function_name, self._possible_functions.keys())
+            self._invalid_name('function name', function_name, self._possible_functions.keys())
         return function_result
 
     # ####################################################### #

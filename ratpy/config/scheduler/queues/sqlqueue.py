@@ -65,7 +65,7 @@ class RatpySQLQueue(Logger):
         self.multithreading = multithreading
         self.timeout = timeout
 
-        self.logger.debug('{:_<18} : OK   [{}]'.format('Initialisation', self.priority))
+        self.logger.debug(action='Initialisation', status='OK', message='[{}]'.format(self.priority))
 
     # ####################################################### #
 
@@ -91,7 +91,7 @@ class RatpySQLQueue(Logger):
             conn.execute('PRAGMA journal_mode=WAL;')
             return conn
 
-        self.logger.debug('{:_<18}        [{}]'.format('Open', self.priority))
+        self.logger.debug(action='Open', message='[{}]'.format(self.priority))
 
         self._conn = open_connection(self.multithreading, self.timeout)
         self._conn.execute(self._sql_create())
@@ -111,15 +111,15 @@ class RatpySQLQueue(Logger):
 
         self._total = self._count()
 
-        self.logger.debug('{:_<18} : OK   [{}]'.format('Open', self.priority))
+        self.logger.debug(action='Open', status='OK', message='[{}]'.format(self.priority))
 
     def close(self):
-        self.logger.debug('{:_<18}        [{}]'.format('Close', self.priority))
+        self.logger.debug(action='Close', message='[{}]'.format(self.priority))
 
         self._getter.close()
         self._putter.close()
 
-        self.logger.debug('{:_<18} : OK   [{}]'.format('Close', self.priority))
+        self.logger.debug(action='Close', status='OK', message='[{}]'.format(self.priority))
 
     # ####################################################### #
 
@@ -188,7 +188,7 @@ class RatpySQLQueue(Logger):
         self._insert(request, timestamp)
         self.put_event.set()
         self._total += 1
-        self.logger.debug('{:_<18} : OK   [{}]'.format('Push', self.priority))
+        self.logger.debug(action='Push', status='OK', message='[{}]'.format(self.priority))
         return True
 
     def pop(self):
@@ -197,10 +197,10 @@ class RatpySQLQueue(Logger):
             self._delete(row[0])
             self._total -= 1
             request = row[1]
-            self.logger.debug('{:_<18} : OK   [{}]'.format('Pop', self.priority))
+            self.logger.debug(action='Pop', status='OK', message='[{}]'.format(self.priority))
         else:
             request = None
-            self.logger.debug('{:_<18} : NO   [{}]'.format('Pop', self.priority))
+            self.logger.debug(action='Pop', status='NO', message='[{}]'.format(self.priority))
         return request
 
     # ####################################################### #

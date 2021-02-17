@@ -4,9 +4,8 @@ import json
 import os
 
 from scrapy import signals
-from scrapy.exceptions import NotConfigured
 
-from ratpy.utils import Logger
+from ratpy.utils import Logger, NotConfigured
 from ratpy.utils.path import work_directory, create_file
 
 # ############################################################### #
@@ -47,7 +46,7 @@ class SpiderState(Logger):
     # ####################################################### #
 
     def open(self, spider):
-        self.logger.debug('{:_<18}'.format('Open'))
+        self.logger.debug(action='Open')
 
         if self.crawler.settings.get('WORK_ON_DISK', False):
             self.work_file = os.path.join(work_directory(self.crawler.settings), self.directory, self.name, spider.name+'.state')
@@ -55,17 +54,17 @@ class SpiderState(Logger):
             with open(self.work_file, 'r') as file:
                 spider.state = json.loads(file.read())
 
-        self.logger.info('{:_<18} : OK'.format('Open'))
+        self.logger.info(action='Open', status='OK')
 
     def close(self, spider):
-        self.logger.debug('{:_<18}'.format('Close'))
+        self.logger.debug(action='Close')
 
         if self.crawler.settings.get('WORK_ON_DISK', False):
             with open(self.work_file, 'w+') as file:
                 file.write(json.dumps(spider.state, indent=4, sort_keys=False))
                 file.close()
 
-        self.logger.info('{:_<18} : OK'.format('Close'))
+        self.logger.info(action='Close', status='OK')
 
     # ####################################################### #
     # ####################################################### #

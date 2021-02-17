@@ -44,30 +44,7 @@ class Logger:
     def logger(self):
 
         if self._logger is None:
-
-            self._logger = logging.getLogger('{:_<55}'.format(self.name))
-
-            formatter = logging.Formatter(
-                fmt=self.crawler.settings.get('LOG_FORMAT'),
-                datefmt=self.crawler.settings.get('LOG_DATEFORMAT')
-            )
-
-            if not self.crawler.settings.getbool('LOG_ENABLED'):
-                self._logger.handlers = []
-                handler = logging.NullHandler()
-                self._logger.addHandler(handler)
-
-            if self.crawler.settings.get('LOG_IN_FILES'):
-                handler = logging.FileHandler(self.log_file, encoding=self.crawler.settings.get('LOG_ENCODING'))
-                handler.setFormatter(formatter)
-                handler.setLevel(self.crawler.settings.get('LOG_LEVEL_IN_FILES'))
-                self._logger.addHandler(handler)
-
-            if self.crawler.settings.get('LOG_IN_ONE_FILE'):
-                handler_all = logging.FileHandler(os.path.join(log_directory(self.crawler.settings), 'ratpy.log'), encoding=self.crawler.settings.get('LOG_ENCODING'))
-                handler_all.setFormatter(formatter)
-                handler_all.setLevel(self.crawler.settings.get('LOG_LEVEL_IN_ONE_FILE'))
-                self._logger.addHandler(handler_all)
+            self._logger = create_logger(self)
 
         return self._logger
 
@@ -84,6 +61,68 @@ class Logger:
 
     # ####################################################### #
     # ####################################################### #
+
+# ############################################################### #
+# ############################################################### #
+
+
+def create_logger(obj):
+
+    class _Logger:
+
+        def __init__(self):
+
+            name_pattern = '{:_<' + str(obj.crawler.settings.getint('LOG_NAME_SIZE')) + '}'
+            self._logger = logging.getLogger(name_pattern.format(obj.name))
+
+            formatter = logging.Formatter(
+                fmt=obj.crawler.settings.get('LOG_FORMAT'),
+                datefmt=obj.crawler.settings.get('LOG_DATEFORMAT')
+            )
+
+            if not obj.crawler.settings.getbool('LOG_ENABLED'):
+                self._logger.handlers = []
+                handler = logging.NullHandler()
+                self._logger.addHandler(handler)
+
+            if obj.crawler.settings.get('LOG_IN_FILES'):
+                handler = logging.FileHandler(obj.log_file, encoding=obj.crawler.settings.get('LOG_ENCODING'))
+                handler.setFormatter(formatter)
+                handler.setLevel(obj.crawler.settings.get('LOG_LEVEL_IN_FILES'))
+                self._logger.addHandler(handler)
+
+            if obj.crawler.settings.get('LOG_IN_ONE_FILE'):
+                handler_all = logging.FileHandler(os.path.join(log_directory(obj.crawler.settings), 'ratpy.log'), encoding=obj.crawler.settings.get('LOG_ENCODING'))
+                handler_all.setFormatter(formatter)
+                handler_all.setLevel(obj.crawler.settings.get('LOG_LEVEL_IN_ONE_FILE'))
+                self._logger.addHandler(handler_all)
+
+        def debug(self, *args, action=None, status=None, message='', **kwargs):
+            self._log(logging.DEBUG, *args, action=action, status=status, message=message, **kwargs)
+
+        def info(self, *args, action=None, status=None, message='', **kwargs):
+            self._log(logging.INFO, *args, action=action, status=status, message=message, **kwargs)
+
+        def warning(self, *args, action=None, status=None, message='', **kwargs):
+            self._log(logging.WARNING, *args, action=action, status=status, message=message, **kwargs)
+
+        def error(self, *args, action=None, status=None, message='', **kwargs):
+            self._log(logging.ERROR, *args, action=action, status=status, message=message, **kwargs)
+
+        def critical(self, *args, action=None, status=None, message='', **kwargs):
+            self._log(logging.CRITICAL, *args, action=action, status=status, message=message, **kwargs)
+
+        def _log(self, level, *args, action=None, status=None, message='', **kwargs):
+
+            if action is not None:
+                if status is not None:
+                    self._logger.log(level, '{:_<18} : {: <5} {}'.format(action, status, message))
+                else:
+                    self._logger.log(level, '{:_<18}         {}'.format(action, message))
+            else:
+                self._logger.log(level, *args, **kwargs)
+
+    return _Logger()
 
 # ############################################################### #
 # ############################################################### #
